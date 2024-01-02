@@ -8,9 +8,9 @@ class MainClass:
 
     def callFileComp(self, path1, path2):
         # production site path
-        prodSite = path1 # "C:/Users/aidan/OneDrive/Desktop/ProdSite_files"
+        prodSite = path1 # example: "C:\Users\aidan\OneDrive\Desktop\Wget\websites\bravenlyglobal.com"
         # development site path
-        devSite = path2 # "C:/Users/aidan/OneDrive/Desktop/DevSite_files"
+        devSite = path2 # example: "C:\Users\aidan\OneDrive\Desktop\Wget\websites\bravenlyglobal.d-solmedia.com"
 
         fc = FileChecker(prodSite, devSite)
         fc.makeTable()

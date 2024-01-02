@@ -1,9 +1,11 @@
+from LinkChecker import LinkChecker
 from prettytable import PrettyTable
 import difflib
 import os
+import re
 
 class CodeChecker:
-    def __init__(self, path1, path2):
+    def __init__(self, path1, path2=""):
         self.path1 = path1
         self.path2 = path2
         self.identical = True
@@ -69,15 +71,15 @@ class CodeChecker:
 
     def compare(self):
         # make sure path points to a file
-        if not os.path.isfile(self.getPath1):
+        if not os.path.isfile(self.getPath1()):
             print("First path does not point to a file!")
-        elif not os.path.isfile(self.getPath1):
+        elif not os.path.isfile(self.getPath1()):
             print("Second path does not point to a file!")
         else:
             # read the files
-            with open(self.getPath1) as f:
+            with open(self.getPath1()) as f:
                 content1: list[str] = f.readlines()
-            with open(self.getPath2) as f:
+            with open(self.getPath2()) as f:
                 content2: list[str] = f.readlines()
 
             # get differences
@@ -95,3 +97,33 @@ class CodeChecker:
                 table.add_row([newContent1, newContent2])
 
                 print(table)
+
+    def checkHTML(self):
+        if not os.path.isfile("C:/Users/aidan/OneDrive/Desktop/CodeFiles/code3.html"):
+            print("Path does not point to a file!")
+        else:
+            with open("C:/Users/aidan/OneDrive/Desktop/CodeFiles/code3.html", 'r') as f:
+                content = f.readlines()
+
+            # use to test any links found in html file
+            lc = LinkChecker()
+
+            lineNum = 1
+            for line in content:
+                # regex to find URLs
+                regex = r'http[s]?://[^\s"\')]+'
+                matches = re.findall(regex, line)
+
+                if matches:
+                    for result in matches:
+                        print(f"URL found on line {lineNum}: {result}")
+                        lc.linkCheck(result)
+                        status = lc.getStatus()
+                        print(f"The URL above is {status}")
+                else:
+                    print(f"No URL found on line {lineNum}")
+
+                lineNum += 1
+
+
+
