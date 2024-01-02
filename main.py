@@ -25,10 +25,16 @@ class MainClass:
         cc = CodeChecker(file1, file2)
         cc.compare()
 
+    def htmlCheck(self, path):
+        file = path # "C:/Users/aidan/OneDrive/Desktop/CodeFiles/code3.html"
+
+        cc = CodeChecker(file)
+        cc.checkHTML()
+
     def getCheckPath(self):
         working = False
         while not working:
-            path = input("Enter path to compare: ")
+            path = input("Enter path a path: ")
             # backslashes may cause errors
             safePath = path.replace("\\", "/")
             working = os.path.exists(safePath)
@@ -41,7 +47,11 @@ def main():
 
     answer = 'x'
     while answer != 'q':
-        answer = input("What do you want to perform:\n(f) File Comparison\n(c) Code Comparison\n(q) Quit\n")
+        answer = input("What do you want to perform:\n"
+                       "(f) File Comparison\n"
+                       "(c) Code Comparison\n"
+                       "(l) Link check (HTML file)\n"
+                       "(q) Quit\n")
         if answer == 'f':
             # get/check first filepath
             path1 = m.getCheckPath()
@@ -55,8 +65,13 @@ def main():
             # get/check second filepath
             path2 = m.getCheckPath()
             m.callCodeComp(path1, path2)
+
+        elif answer == 'l':
+            path = m.getCheckPath()
+            m.htmlCheck(path)
+
         else:
-            "Enter f, c or q"
+            "Enter f, c, l, or q"
 
 if __name__ == "__main__":
   main()

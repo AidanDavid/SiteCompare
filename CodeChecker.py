@@ -99,10 +99,10 @@ class CodeChecker:
                 print(table)
 
     def checkHTML(self):
-        if not os.path.isfile("C:/Users/aidan/OneDrive/Desktop/CodeFiles/code3.html"):
+        if not os.path.isfile(self.path1):
             print("Path does not point to a file!")
         else:
-            with open("C:/Users/aidan/OneDrive/Desktop/CodeFiles/code3.html", 'r') as f:
+            with open(self.path1, 'r') as f:
                 content = f.readlines()
 
             # use to test any links found in html file
