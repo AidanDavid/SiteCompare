@@ -7,6 +7,8 @@ class FileChecker:
     def __init__(self, prodS, devS):
         self.prodSite = prodS
         self.devSite = devS
+        # to track files, avoid double printing
+        self.processed_files = set()
         # file sizing/info
         self.fileTable = PrettyTable([
             '\033[97m{}\033[0m'.format("Filename"), '\033[97m{}\033[0m'.format("Found"),
@@ -40,80 +42,84 @@ class FileChecker:
                     self.compAddRow(rel_path, prefix=prefix, entry=entry)
 
     def compAddRow(self, rel_path, prefix="", entry="", dirMatch=False):
-        prod = os.path.join(self.prodSite, rel_path)
-        dev = os.path.join(self.devSite, rel_path)
+        # Process files only if not already processed
+        if f"{prefix}{entry}" not in self.processed_files:
+            self.processed_files.add(f"{prefix}{entry}")
 
-        prod_stats = os.stat(prod) if os.path.exists(prod) else False
-        dev_stats = os.stat(dev) if os.path.exists(dev) else False
+            prod = os.path.join(self.prodSite, rel_path)
+            dev = os.path.join(self.devSite, rel_path)
 
-        # Standard colorations
-        if dirMatch:
-            prefix = '\033[92m{}\033[0m'.format(prefix)
-        match = '\033[92m'
-        found = '\033[92m{}\033[0m'.format("BOTH")
-        size = '\033[92m{}\033[0m'
-        change = '\033[92m{}\033[0m'
+            prod_stats = os.stat(prod) if os.path.exists(prod) else False
+            dev_stats = os.stat(dev) if os.path.exists(dev) else False
 
-        # found in both
-        if prod_stats and dev_stats:
-            if prod_stats and dev_stats and prod_stats.st_size != dev_stats.st_size:
-                size = '\033[91m{}\033[0m'
-            if prod_stats and dev_stats and time.ctime(prod_stats.st_mtime) != time.ctime(dev_stats.st_mtime):
-                change = '\033[91m{}\033[0m'
+            # Standard colorations
+            if dirMatch:
+                prefix = '\033[92m{}\033[0m'.format(prefix)
+            match = '\033[92m'
+            found = '\033[92m{}\033[0m'.format("BOTH")
+            size = '\033[92m{}\033[0m'
+            change = '\033[92m{}\033[0m'
 
-        # found in production only
-        elif prod_stats:
-            match = '\033[93m'
-            found = '\033[93m{}\033[0m'.format("PROD.")
-            size = '\033[97m{}\033[0m'
-            change = '\033[97m{}\033[0m'
+            # found in both
+            if prod_stats and dev_stats:
+                if prod_stats and dev_stats and prod_stats.st_size != dev_stats.st_size:
+                    size = '\033[91m{}\033[0m'
+                if prod_stats and dev_stats and time.ctime(prod_stats.st_mtime) != time.ctime(dev_stats.st_mtime):
+                    change = '\033[91m{}\033[0m'
 
-        # found in development only
-        else:
-            match = '\033[94m'
-            found = '\033[94m{}\033[0m'.format("DEV.")
-            size = '\033[97m{}\033[0m'
-            change = '\033[97m{}\033[0m'
+            # found in production only
+            elif prod_stats:
+                match = '\033[93m'
+                found = '\033[93m{}\033[0m'.format("PROD.")
+                size = '\033[97m{}\033[0m'
+                change = '\033[97m{}\033[0m'
 
-        # determine if a file is code, if so apply code matching
-        isCode = False
-        # file extensions being looked for, add more if necessary
-        fileExt = ['.html', '.css', '.js', '.php', '.xml', '.ts', '.sql', '.json', '.py']
-        noTrail = entry.split('@')
-        for ext in fileExt:
-            if noTrail[0].lower().endswith(ext):
-                isCode = True
+            # found in development only
+            else:
+                match = '\033[94m'
+                found = '\033[94m{}\033[0m'.format("DEV.")
+                size = '\033[97m{}\033[0m'
+                change = '\033[97m{}\033[0m'
 
-        # if not code: irrelevant
-        #   if only found in either: not comparable (irrelevant)
-        #       if the file is found in both and identical: True
-        #       else: false
-        if isCode:
-            if found == '\033[92m{}\033[0m'.format("BOTH"):
-                path1 = self.prodSite + '/' + entry
-                path2 = self.devSite + '/' + entry
-                cc = CodeChecker(path1, path2)
-                cc.compare()
-                if cc.getResult() == "Files are identical!":
-                    codeMatch = '\033[92m{}\033[0m'.format("TRUE")
+            # determine if a file is code, if so apply code matching
+            isCode = False
+            # file extensions being looked for, add more if necessary
+            fileExt = ['.html', '.css', '.js', '.php', '.xml', '.ts', '.sql', '.json', '.py']
+            noTrail = entry.split('@')
+            for ext in fileExt:
+                if noTrail[0].lower().endswith(ext):
+                    isCode = True
+
+            # if not code: irrelevant
+            #   if only found in either: not comparable (irrelevant)
+            #       if the file is found in both and identical: True
+            #       else: false
+            if isCode:
+                if found == '\033[92m{}\033[0m'.format("BOTH"):
+                    path1 = self.prodSite + '/' + entry
+                    path2 = self.devSite + '/' + entry
+                    cc = CodeChecker(path1, path2)
+                    cc.compare()
+                    if cc.getResult() == "Files are identical!":
+                        codeMatch = '\033[92m{}\033[0m'.format("TRUE")
+                    else:
+                        codeMatch = '\033[91m{}\033[0m'.format("FALSE")
                 else:
-                    codeMatch = '\033[91m{}\033[0m'.format("FALSE")
+                    codeMatch = "N/A"
             else:
                 codeMatch = "N/A"
-        else:
-            codeMatch = "N/A"
 
 
-        # add row based on above
-        self.fileTable.add_row([
-            f"{prefix}{match}{entry}\033[0m",
-            found,
-            codeMatch,
-            size.format(prod_stats.st_size) if prod_stats else "N/A",
-            size.format(dev_stats.st_size) if dev_stats else "N/A",
-            change.format(time.ctime(round(prod_stats.st_mtime))) if prod_stats else "N/A",
-            change.format(time.ctime(round(dev_stats.st_mtime))) if dev_stats else "N/A"
-        ])
+            # add row based on above
+            self.fileTable.add_row([
+                f"{prefix}{match}{entry}\033[0m",
+                found,
+                codeMatch,
+                size.format(prod_stats.st_size) if prod_stats else "N/A",
+                size.format(dev_stats.st_size) if dev_stats else "N/A",
+                change.format(time.ctime(round(prod_stats.st_mtime))) if prod_stats else "N/A",
+                change.format(time.ctime(round(dev_stats.st_mtime))) if dev_stats else "N/A"
+            ])
 
     def makeTable(self):
         self.exploreDir(self.prodSite)
