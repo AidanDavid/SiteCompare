@@ -74,16 +74,19 @@ class CodeChecker:
         return content1, content2
 
     def compare(self):
+
         # make sure path points to a file
         if not os.path.isfile(self.getPath1()):
             print("First path does not point to a file!")
-        elif not os.path.isfile(self.getPath1()):
+            if not os.path.isfile(self.getPath2()):
+                print("Second path does not point to a file either!")
+        elif not os.path.isfile(self.getPath2()):
             print("Second path does not point to a file!")
         else:
             # read the files
-            with open(self.getPath1()) as f:
+            with open(self.getPath1(), 'r', encoding='utf-8') as f:
                 content1: list[str] = f.readlines()
-            with open(self.getPath2()) as f:
+            with open(self.getPath2(), 'r', encoding='utf-8') as f:
                 content2: list[str] = f.readlines()
 
             # get differences

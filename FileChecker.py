@@ -53,8 +53,6 @@ class FileChecker:
             dev_stats = os.stat(dev) if os.path.exists(dev) else False
 
             # Standard colorations
-            if dirMatch:
-                prefix = '\033[92m{}\033[0m'.format(prefix)
             match = '\033[92m'
             found = '\033[92m{}\033[0m'.format("BOTH")
             size = '\033[92m{}\033[0m'
@@ -96,8 +94,8 @@ class FileChecker:
             #       else: false
             if isCode:
                 if found == '\033[92m{}\033[0m'.format("BOTH"):
-                    path1 = self.prodSite + '/' + entry
-                    path2 = self.devSite + '/' + entry
+                    path1 = self.prodSite + '/' + prefix + entry
+                    path2 = self.devSite + '/' + prefix + entry
                     cc = CodeChecker(path1, path2)
                     cc.compare()
                     if cc.getResult() == "Files are identical!":
@@ -109,6 +107,8 @@ class FileChecker:
             else:
                 codeMatch = "N/A"
 
+            if dirMatch:
+                prefix = '\033[92m{}\033[0m'.format(prefix)
 
             # add row based on above
             self.fileTable.add_row([
