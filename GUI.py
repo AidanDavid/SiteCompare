@@ -1,19 +1,39 @@
-from tkinter import *
+import tkinter as tk
 from tkinter import ttk
+from FileChecker import FileChecker
 
-class GUI:
-    def __init__(self):
-        pass
+def show_ingredients():
+    selected_recipe = recipe_var.get()
+    ingredients_text.set(ingredients_dict[selected_recipe])
 
-    def mainScreen(self):
-        root = Tk()
-        root.geometry("1000x600")
+fc = FileChecker("C:/Users/aidan/OneDrive/Desktop/Wget/websites/bravenlyglobal.com","C:/Users/aidan/OneDrive/Desktop/Wget/websites/bravenlyglobal.d-solmedia.com")
+fc.makeTable()
 
-        ttk.Label(root, text="Site Comparator").place(x=500, y=200)
-        ttk.Button(root, text="Start", command=root.destroy).place(x=400, y=300)
-        ttk.Button(root, text="Quit", command=root.destroy).place(x=600, y=300)
+# Dictionary to store recipe names and their corresponding ingredients
+recipes = {'Cookies': 'Flour, Sugar, Eggs, Butter',
+           'Muffins': 'Flour, Baking Powder, Sugar, Milk, Eggs',
+           'Waffles': 'Flour, Baking Powder, Sugar, Milk, Eggs, Butter'}
 
-        root.mainloop()
+# Create a Tkinter window
+window = tk.Tk()
+window.title('Recipe Application')
 
-gui = GUI()
-gui.mainScreen()
+# Dropdown for recipe selection
+recipe_var = tk.StringVar()
+recipe_dropdown = ttk.Combobox(window, textvariable=recipe_var, values=list(recipes.keys()))
+recipe_dropdown.grid(row=0, column=0, padx=10, pady=10)
+
+# Button to show ingredients
+show_button = tk.Button(window, text='Show Ingredients', command=show_ingredients)
+show_button.grid(row=0, column=1, padx=10, pady=10)
+
+# Label to display ingredients
+ingredients_text = tk.StringVar()
+ingredients_label = tk.Label(window, textvariable=ingredients_text, wraplength=300)
+ingredients_label.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
+
+# Dictionary to map selected recipe to ingredients
+ingredients_dict = {recipe: ingredients for recipe, ingredients in recipes.items()}
+
+# Start the Tkinter event loop
+window.mainloop()

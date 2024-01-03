@@ -6,7 +6,7 @@ class MainClass:
     def __init__(self):
         pass
 
-    def callFileComp(self, path1, path2):
+    def fileComp(self, path1, path2):
         # production site path
         prodSite = path1 # example: "C:\Users\aidan\OneDrive\Desktop\Wget\websites\bravenlyglobal.com"
         # development site path
@@ -14,9 +14,9 @@ class MainClass:
 
         fc = FileChecker(prodSite, devSite)
         fc.makeTable()
-        print(fc.fileTable)
+        print(fc.getFileTable())
 
-    def callCodeComp(self, path1, path2):
+    def codeComp(self, path1, path2):
         # code 1 path
         file1 = path1 # "C:/Users/aidan/OneDrive/Desktop/CodeFiles/code1.txt"
         # code 2 path
@@ -24,6 +24,7 @@ class MainClass:
 
         cc = CodeChecker(file1, file2)
         cc.compare()
+        print(cc.getResult())
 
     def htmlCheck(self, path):
         file = path # "C:/Users/aidan/OneDrive/Desktop/CodeFiles/code3.html"
@@ -33,6 +34,7 @@ class MainClass:
 
     def getCheckPath(self):
         working = False
+        safePath = ""
         while not working:
             path = input("Enter path a path: ")
             # backslashes may cause errors
@@ -52,19 +54,20 @@ def main():
                        "(c) Code Comparison\n"
                        "(l) Link check (HTML file)\n"
                        "(q) Quit\n")
+
         if answer == 'f':
             # get/check first filepath
             path1 = m.getCheckPath()
             # get/check second filepath
             path2 = m.getCheckPath()
-            m.callFileComp(path1, path2)
+            m.fileComp(path1, path2)
 
         elif answer == 'c':
             # get/check first filepath
             path1 = m.getCheckPath()
             # get/check second filepath
             path2 = m.getCheckPath()
-            m.callCodeComp(path1, path2)
+            m.codeComp(path1, path2)
 
         elif answer == 'l':
             path = m.getCheckPath()

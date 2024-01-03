@@ -9,6 +9,7 @@ class CodeChecker:
         self.path1 = path1
         self.path2 = path2
         self.identical = True
+        self.result = "Call compare() first"
 
     def getPath1(self):
         return self.path1
@@ -24,6 +25,9 @@ class CodeChecker:
 
     def isIdentical(self):
         self.identical = True
+
+    def getResult(self):
+        return self.result
 
     def colorNumberSplit(self, content):
         # line numbers to help find changes in source code
@@ -89,14 +93,14 @@ class CodeChecker:
 
             # print they are identical, else print code with differences
             if self.getIdentical():
-                print("Files are identical!")
+                self.result = "Files are identical!"
             else:
                 table = PrettyTable(['\033[97m{}\033[0m'.format(f'Path 1: {self.path1}'), '\033[97m{}\033[0m'.format(f'Path 2: {self.path2}')])
                 table.align['\033[97m{}\033[0m'.format(f'Path 1: {self.path1}')] = "l"
                 table.align['\033[97m{}\033[0m'.format(f'Path 2: {self.path2}')] = "l"
                 table.add_row([newContent1, newContent2])
 
-                print(table)
+                self.result = table
 
     def checkHTML(self):
         if not os.path.isfile(self.path1):
