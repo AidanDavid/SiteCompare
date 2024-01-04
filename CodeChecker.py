@@ -66,8 +66,10 @@ class CodeChecker:
                 lineNum1 += 1
             # shared lines
             else:
-                content1 = content1 + f'{lineNum1}: {line}'
-                content2 = content2 + f'{lineNum2}: {line}'
+                white_num = '\033[97m{}\033[0m'.format(lineNum1)
+                content1 = content1 + f'{white_num}: {line}'
+                white_num = '\033[97m{}\033[0m'.format(lineNum2)
+                content2 = content2 + f'{white_num}: {line}'
                 lineNum1 += 1
                 lineNum2 += 1
 
@@ -102,6 +104,7 @@ class CodeChecker:
                 table.align['\033[97m{}\033[0m'.format(f'Path 1: {self.path1}')] = "l"
                 table.align['\033[97m{}\033[0m'.format(f'Path 2: {self.path2}')] = "l"
                 table.add_row([newContent1, newContent2])
+                table.max_width = 80
 
                 self.result = table
 
