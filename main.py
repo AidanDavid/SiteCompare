@@ -26,11 +26,11 @@ class MainClass:
         cc.compare()
         print(cc.getResult())
 
-    def htmlCheck(self, path):
+    def linksCheck(self, path):
         file = path # "C:/Users/aidan/OneDrive/Desktop/CodeFiles/code3.html"
 
         cc = CodeChecker(file)
-        cc.checkHTML()
+        cc.checkLinksPrint()
 
     def getCheckPath(self):
         working = False
@@ -189,7 +189,7 @@ def main():
 
         elif answer == 'l':
             path = m.getCheckPath()
-            m.htmlCheck(path)
+            m.linksCheck(path)
 
         else:
             "Enter f, c, l, or q"
