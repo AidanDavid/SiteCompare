@@ -35,4 +35,5 @@ class LinkChecker:
                 self.code = response
                 self.status = f"broken (code: {response})"
         except requests.RequestException as e:
-            print(str(e))
+            self.status = "Connection error: " + str(e)
+            self.code = 429

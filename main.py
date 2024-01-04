@@ -6,13 +6,13 @@ class MainClass:
     def __init__(self):
         pass
 
-    def fileComp(self, path1, path2):
+    def fileComp(self, path1, path2, cc=False, lc=False):
         # production site path
         prodSite = path1 # example: "C:\Users\aidan\OneDrive\Desktop\Wget\websites\bravenlyglobal.com"
         # development site path
         devSite = path2 # example: "C:\Users\aidan\OneDrive\Desktop\Wget\websites\bravenlyglobal.d-solmedia.com"
 
-        fc = FileChecker(prodSite, devSite)
+        fc = FileChecker(prodSite, devSite, code_check=cc, link_check=lc)
         fc.makeTable()
         print(fc.getFileTable())
 
@@ -75,7 +75,14 @@ def main():
             path1 = m.getCheckPath()
             # get/check second filepath
             path2 = m.getCheckPath()
-            m.fileComp(path1, path2)
+
+            reply = input("Code check (c) or link check (l) (else: neither), performed on files: ")
+            if reply == 'c':
+                m.fileComp(path1, path2, cc=True)
+            elif reply == 'l':
+                m.fileComp(path1, path2, lc=True)
+            else:
+                m.fileComp(path1, path2)
             ans = 'x'
             while ans != 'q' and ans != 'r':
                 ans = input("\n\nWhat do you want to perform based on the table generated:\n"
