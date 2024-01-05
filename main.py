@@ -1,5 +1,6 @@
 from FileChecker import FileChecker
 from CodeChecker import CodeChecker
+from LinkChecker import LinkChecker
 import os
 
 class MainClass:
@@ -94,9 +95,9 @@ def main():
 
                     # perform code compare based on files found by FileChecker
                     if ans == 'c':
-                        print("\n^ Copy a filename with local path from above ^\n")
+                        print("\n^ Copy filename(s) with local path from above ^\n")
                         inp = 'x'
-                        while inp != 'q':
+                        while inp != 'r':
                             inp = input("Is file in BOTH (b), PROD. (p), or DEV. (d): ")
 
                             # user wants to compare two files found in both sites
@@ -112,7 +113,7 @@ def main():
                             elif inp == 'p':
                                 test_path = m.get_check_sub_path(path1)
                                 inp2 = 'x'
-                                while inp2 != 'q':
+                                while inp2 != 'r':
                                     inp2 = input("Is other file in PROD. (p), DEV. (d), or elsewhere (e): ")
                                     if inp2 == 'p':
                                         test_path2 = m.get_check_sub_path(path1)
@@ -126,18 +127,16 @@ def main():
                                         e_path = m.getCheckPath()
                                         m.codeComp(path1 + '/' + test_path, e_path)
                                         break
-                                    elif inp2 == 'q':
+                                    elif inp2 == 'r':
                                         break
                                     else:
                                         print("Enter p, d, or e")
-                                break
-
 
                             # user wants to compare a development file against another file
                             elif inp == 'd':
                                 test_path = m.get_check_sub_path(path2)
                                 inp2 = 'x'
-                                while inp2 != 'q':
+                                while inp2 != 'r':
                                     inp2 = input("Is other file in PROD. (p), DEV. (d), or elsewhere (e): ")
                                     if inp2 == 'p':
                                         test_path2 = m.get_check_sub_path(path1)
@@ -151,22 +150,21 @@ def main():
                                         e_path = m.getCheckPath()
                                         m.codeComp(path2 + '/' + test_path, e_path)
                                         break
-                                    elif inp2 == 'q':
+                                    elif inp2 == 'r':
                                         break
                                     else:
                                         print("Enter p, d, or e")
                                 break
-                            elif inp == 'q':
+                            elif inp == 'r':
                                 break
                             else:
                                 print("Enter b, p, or d")
-                        break
 
                     # perform LinkChecker on a file found by FileChecker
                     elif ans == 'l':
                         print("\n^ Copy a filename with local path from above ^\n")
                         inp = 'x'
-                        while inp != 'q':
+                        while inp != 'r':
                             inp = input("PROD. (p), or DEV. (d): ")
                             if inp == 'p':
                                 test_path = m.get_check_sub_path(path1)
@@ -176,7 +174,7 @@ def main():
                                 test_path = m.get_check_sub_path(path2)
                                 m.linksCheck(path2 + '/' + test_path)
                                 break
-                            elif inp == 'q':
+                            elif inp == 'r':
                                 break
                             else:
                                 print("Enter p or d")
@@ -196,8 +194,20 @@ def main():
                 m.codeComp(path1, path2)
 
             elif answer == 'l':
-                path = m.getCheckPath()
-                m.linksCheck(path)
+                reply = 'x'
+                while reply != 'r':
+                    reply = input("Check a single link (s) or links in a file (f): ")
+                    if reply == 's':
+                        url = input("Paste URL here: ")
+                        lc = LinkChecker()
+                        lc.linkCheck(url)
+                        status = lc.getStatus()
+                        print(f"The URL above is {status}")
+                        break
+                    elif reply == 'f':
+                        path = m.getCheckPath()
+                        m.linksCheck(path)
+                        break
 
             else:
                 "Enter f, c, l, or q"
