@@ -1,5 +1,6 @@
 import os
 import time
+import re
 from prettytable import PrettyTable
 from CodeChecker import CodeChecker
 
@@ -35,7 +36,11 @@ class FileChecker:
     def getFileTable(self):
         return self.fileTable
 
-    def exploreDir(self, dir_path, prefix="", site2=False, dirMatch=False):
+    def escape_ansi(self, str):
+        ansi_escape = re.compile(r'(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]')
+        return ansi_escape.sub('', str)
+
+    def exploreDir(self, dir_path, prefix="", site2=False):
         for entry in os.listdir(dir_path):
             full_path = os.path.join(dir_path, entry)
             # path dependent
@@ -47,19 +52,17 @@ class FileChecker:
             # add prefix and entry recursively call, or process them
             if os.path.isdir(full_path):
                 if os.path.exists(f"{self.prodSite}/{rel_path}") and os.path.exists(f"{self.prodSite}/{rel_path}"):
-                    self.exploreDir(full_path, prefix=f"{prefix}{entry}/", site2=site2, dirMatch=True)
+                    self.exploreDir(full_path, prefix=f"{prefix}{entry}/", site2=site2)
                 else:
                     self.exploreDir(full_path, prefix=f"{prefix}{entry}/", site2=site2)
             else:
-                if dirMatch:
-                    self.compAddRow(rel_path, prefix=prefix, entry=entry, dirMatch=True)
-                else:
-                    self.compAddRow(rel_path, prefix=prefix, entry=entry)
+                self.compAddRow(rel_path, prefix=prefix, entry=entry)
 
-    def compAddRow(self, rel_path, prefix="", entry="", dirMatch=False):
+    def compAddRow(self, rel_path, prefix="", entry=""):
         # Process files only if not already processed
-        if f"{prefix}{entry}" not in self.processed_files:
-            self.processed_files.add(f"{prefix}{entry}")
+        full_path_key = os.path.join(prefix, entry)
+        if full_path_key not in self.processed_files:
+            self.processed_files.add(full_path_key)
 
             prod = os.path.join(self.prodSite, rel_path)
             dev = os.path.join(self.devSite, rel_path)
@@ -168,8 +171,33 @@ class FileChecker:
                         links_prod = "N/A"
                         links_dev = "N/A"
 
-                if dirMatch:
+                # color path before file
+                if os.path.exists(self.prodSite + '/' + prefix) and os.path.exists(self.devSite + '/' + prefix):
                     prefix = '\033[92m{}\033[0m'.format(prefix)
+                else:
+                    # color matching, green; else yellow
+                    if prod_stats:
+                        directories = prefix.split('/')
+                        prefix = ""
+                        for i, directory in enumerate(directories):
+                            if i < len(directories) - 1:
+                                #                                      removes color for the comparison
+                                if os.path.exists(self.devSite + '/' + self.escape_ansi(prefix)):
+                                    prefix = prefix + '\033[92m{}\033[0m'.format(directory + '/')
+                                else:
+                                    prefix = prefix + '\033[93m{}\033[0m'.format(directory + '/')
+                    # color matching, green; else blue
+                    else:
+                        directories = prefix.split('/')
+                        prefix = ""
+                        for i, directory in enumerate(directories):
+                            if i < len(directories) - 1:
+                                #                                       removes color for the comparison
+                                if os.path.exists(self.prodSite + '/' + self.escape_ansi(prefix)):
+                                    prefix = prefix + '\033[92m{}\033[0m'.format(directory + '/')
+                                else:
+                                    prefix = prefix + '\033[94m{}\033[0m'.format(directory + '/')
+
 
                 if self.code_check:
                     # add row based on above
@@ -193,8 +221,32 @@ class FileChecker:
                     ])
 
             else:
-                if dirMatch:
+                # color path before file
+                if os.path.exists(self.prodSite + '/' + prefix) and os.path.exists(self.devSite + '/' + prefix):
                     prefix = '\033[92m{}\033[0m'.format(prefix)
+                else:
+                    # color matching, green; else yellow
+                    if prod_stats:
+                        directories = prefix.split('/')
+                        prefix = ""
+                        for i, directory in enumerate(directories):
+                            if i < len(directories) - 1:
+                                #                                      removes color for the comparison
+                                if os.path.exists(self.devSite + '/' + self.escape_ansi(prefix)):
+                                    prefix = prefix + '\033[92m{}\033[0m'.format(directory + '/')
+                                else:
+                                    prefix = prefix + '\033[93m{}\033[0m'.format(directory + '/')
+                    # color matching, green; else blue
+                    else:
+                        directories = prefix.split('/')
+                        prefix = ""
+                        for i, directory in enumerate(directories):
+                            if i < len(directories) - 1:
+                                #                                       removes color for the comparison
+                                if os.path.exists(self.prodSite + '/' + self.escape_ansi(prefix)):
+                                    prefix = prefix + '\033[92m{}\033[0m'.format(directory + '/')
+                                else:
+                                    prefix = prefix + '\033[94m{}\033[0m'.format(directory + '/')
 
                 # add row based on above
                 self.fileTable.add_row([

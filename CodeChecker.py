@@ -108,7 +108,7 @@ class CodeChecker:
 
                 self.result = table
 
-        # no return, only print
+    # no return, only print
     def checkLinksPrint(self):
         if not os.path.isfile(self.path1):
             print("Path does not point to a file!")
@@ -119,6 +119,7 @@ class CodeChecker:
             # use to test any links found in html file
             lc = LinkChecker()
 
+            link_found = False
             lineNum = 1
             for line in content:
                 # regex to find URLs
@@ -133,7 +134,10 @@ class CodeChecker:
                         print(f"The URL above is {status}")
                 lineNum += 1
 
-    # returns an int
+            if not link_found:
+                print("No links found!")
+
+    # returns number for failed links
     def checkLinks(self):
         if not os.path.isfile(self.path1):
             print("Path does not point to a file!")
@@ -153,6 +157,7 @@ class CodeChecker:
 
                 if matches:
                     for result in matches:
+                        print(f'link found: {result}')
                         lc.linkCheck(result)
                         if lc.getCode() >= 400:
                             links_failed += 1
