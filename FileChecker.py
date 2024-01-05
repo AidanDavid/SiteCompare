@@ -172,7 +172,7 @@ class FileChecker:
                         links_dev = "N/A"
 
                 # color path before file
-                if os.path.exists(self.prodSite + '/' + prefix) and os.path.exists(self.devSite + '/' + prefix):
+                if prod_stats and dev_stats:
                     prefix = '\033[92m{}\033[0m'.format(prefix)
                 else:
                     # color matching, green; else yellow
@@ -222,7 +222,7 @@ class FileChecker:
 
             else:
                 # color path before file
-                if os.path.exists(self.prodSite + '/' + prefix) and os.path.exists(self.devSite + '/' + prefix):
+                if prod_stats and dev_stats:
                     prefix = '\033[92m{}\033[0m'.format(prefix)
                 else:
                     # color matching, green; else yellow

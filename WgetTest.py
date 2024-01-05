@@ -11,4 +11,5 @@ def runcmd(cmd: "list[str]", verbose = False):
     if verbose:
         print(std_out.strip(), std_err)
 
-runcmd(["wget", "https://bravenlyglobal.d-solmedia.com/"], verbose = True)
+
+runcmd(["wget", "--random-wait", "-r", "-p", "-e", "robots=off", "-U", "mozilla", "https://bravenlyglobal.d-solmedia.com/"], verbose = True)
