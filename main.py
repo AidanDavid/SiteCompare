@@ -18,16 +18,16 @@ class MainClass:
 
     def codeComp(self, path1, path2):
         # code 1 path
-        file1 = path1 # "C:/Users/aidan/OneDrive/Desktop/CodeFiles/code1.txt"
+        file1 = path1 # C:/Users/aidan/OneDrive/Desktop/CodeFiles/code1.txt
         # code 2 path
-        file2 = path2 # "C:/Users/aidan/OneDrive/Desktop/CodeFiles/code2.txt"
+        file2 = path2 # C:/Users/aidan/OneDrive/Desktop/CodeFiles/code2.txt
 
         cc = CodeChecker(file1, file2)
         cc.compare()
         print(cc.getResult())
 
     def linksCheck(self, path):
-        file = path # "C:/Users/aidan/OneDrive/Desktop/CodeFiles/code3.html"
+        file = path # C:/Users/aidan/OneDrive/Desktop/CodeFiles/code3.html
 
         cc = CodeChecker(file)
         cc.checkLinksPrint()

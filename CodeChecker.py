@@ -40,8 +40,7 @@ class CodeChecker:
         for line in content:
             # lines not in either file
             if line[0] == '?':
-                lineNum1 -= 1
-                lineNum2 -= 1
+                pass
             # added lines
             elif line[0] == '+':
                 self.notIdentical()
