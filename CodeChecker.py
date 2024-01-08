@@ -1,8 +1,9 @@
-from LinkChecker import LinkChecker
-from prettytable import PrettyTable
-import difflib
 import os
 import re
+import difflib
+from LinkChecker import LinkChecker
+from prettytable import PrettyTable
+
 
 class CodeChecker:
     def __init__(self, path1, path2=""):
@@ -11,28 +12,13 @@ class CodeChecker:
         self.identical = True
         self.result = "Call compare() first"
 
-    def getPath1(self):
-        return self.path1
-
-    def getPath2(self):
-        return self.path2
-
-    def getIdentical(self):
-        return self.identical
-
-    def notIdentical(self):
-        self.identical = False
-
-    def isIdentical(self):
-        self.identical = True
-
-    def getResult(self):
+    def get_result(self):
         return self.result
 
-    def colorNumberSplit(self, content):
+    def color_number_split(self, content):
         # line numbers to help find changes in source code
-        lineNum1 = 1
-        lineNum2 = 1
+        line_num1 = 1
+        line_num2 = 1
 
         content1 = ""
         content2 = ""
@@ -43,72 +29,73 @@ class CodeChecker:
                 pass
             # added lines
             elif line[0] == '+':
-                self.notIdentical()
+                self.identical = False
                 # remove \n to avoid colour bleed
-                content2 = content2 + '\033[92m{}\033[0m'.format(f'{lineNum2}: {line[:-1]}')
+                content2 = content2 + '\033[92m{}\033[0m'.format(f'{line_num2}: {line[:-1]}')
                 # add it back
                 if line[-1] != '\n':  # last line only
                     content2 = content2 + '\033[92m{}\033[0m'.format(f'{line[-1]}')
                 else:
                     content2 = content2 + line[-1]
-                lineNum2 += 1
+                line_num2 += 1
             # deleted lines
             elif line[0] == '-':
-                self.notIdentical()
+                self.identical = False
                 # remove last char to avoid colour bleed
-                content1 = content1 + '\033[91m{}\033[0m'.format(f'{lineNum1}: {line[:-1]}')
+                content1 = content1 + '\033[91m{}\033[0m'.format(f'{line_num1}: {line[:-1]}')
                 # add it back
-                if line[-1] != '\n': # last line only
+                if line[-1] != '\n':  # last line only
                     content1 = content1 + '\033[91m{}\033[0m'.format(f'{line[-1]}')
                 else:
                     content1 = content1 + line[-1]
-                lineNum1 += 1
+                line_num1 += 1
             # shared lines
             else:
-                white_num = '\033[97m{}\033[0m'.format(lineNum1)
+                white_num = '\033[97m{}\033[0m'.format(line_num1)
                 content1 = content1 + f'{white_num}: {line}'
-                white_num = '\033[97m{}\033[0m'.format(lineNum2)
+                white_num = '\033[97m{}\033[0m'.format(line_num2)
                 content2 = content2 + f'{white_num}: {line}'
-                lineNum1 += 1
-                lineNum2 += 1
+                line_num1 += 1
+                line_num2 += 1
 
         return content1, content2
 
     def compare(self):
 
         # make sure path points to a file
-        if not os.path.isfile(self.getPath1()):
+        if not os.path.isfile(self.path1):
             print("First path does not point to a file!")
-            if not os.path.isfile(self.getPath2()):
+            if not os.path.isfile(self.path2):
                 print("Second path does not point to a file either!")
-        elif not os.path.isfile(self.getPath2()):
+        elif not os.path.isfile(self.path2):
             print("Second path does not point to a file!")
         else:
             # read the files
-            with open(self.getPath1(), 'r', encoding='utf-8') as f:
-                content1: list[str] = f.readlines()
-            with open(self.getPath2(), 'r', encoding='utf-8') as f:
-                content2: list[str] = f.readlines()
+            with open(self.path1, 'r', encoding='utf-8') as f:
+                content1 = f.readlines()
+            with open(self.path2, 'r', encoding='utf-8') as f:
+                content2 = f.readlines()
 
             # get differences
             diffs = list(difflib.ndiff(content1, content2))
 
-            newContent1, newContent2 = self.colorNumberSplit(diffs)
+            new_content1, new_content2 = self.color_number_split(diffs)
 
             # print they are identical, else print code with differences
-            if self.getIdentical():
+            if self.identical:
                 self.result = "Files are identical!"
             else:
-                table = PrettyTable(['\033[97m{}\033[0m'.format(f'Path 1: {self.path1}'), '\033[97m{}\033[0m'.format(f'Path 2: {self.path2}')])
+                table = PrettyTable(['\033[97m{}\033[0m'.format(f'Path 1: {self.path1}'),
+                                     '\033[97m{}\033[0m'.format(f'Path 2: {self.path2}')])
                 table.align['\033[97m{}\033[0m'.format(f'Path 1: {self.path1}')] = "l"
                 table.align['\033[97m{}\033[0m'.format(f'Path 2: {self.path2}')] = "l"
-                table.add_row([newContent1, newContent2])
+                table.add_row([new_content1, new_content2])
                 table.max_width = 80
 
                 self.result = table
 
     # no return, only print
-    def checkLinksPrint(self):
+    def check_links_print(self):
         if not os.path.isfile(self.path1):
             print("Path does not point to a file!")
         else:
@@ -119,7 +106,7 @@ class CodeChecker:
             lc = LinkChecker()
 
             link_found = False
-            lineNum = 1
+            line_num = 1
             for line in content:
                 # regex to find URLs
                 regex = r'http[s]?://[^\s"<>\')]+'
@@ -127,17 +114,17 @@ class CodeChecker:
 
                 if matches:
                     for result in matches:
-                        print(f"URL found on line {lineNum}: {result}")
-                        lc.linkCheck(result)
-                        status = lc.getStatus()
+                        print(f"URL found on line {line_num}: {result}")
+                        lc.link_check(result)
+                        status = lc.get_status()
                         print(f"The URL above is {status}")
-                lineNum += 1
+                line_num += 1
 
             if not link_found:
                 print("No links found!")
 
     # returns number for failed links
-    def checkLinks(self):
+    def check_links(self):
         if not os.path.isfile(self.path1):
             print("Path does not point to a file!")
         else:
@@ -148,7 +135,7 @@ class CodeChecker:
             lc = LinkChecker()
 
             links_failed = 0    # 0 == all good, else 1+ failures
-            lineNum = 1
+            line_num = 1
             for line in content:
                 # regex to find URLs
                 regex = r'http[s]?://[^\s"<>\')]+'
@@ -157,9 +144,9 @@ class CodeChecker:
                 if matches:
                     for result in matches:
                         print(f'link found: {result}')
-                        lc.linkCheck(result)
-                        if lc.getCode() >= 400:
+                        lc.link_check(result)
+                        if lc.get_code() >= 400:
                             links_failed += 1
-                lineNum += 1
+                line_num += 1
 
             return links_failed

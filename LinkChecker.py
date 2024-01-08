@@ -1,21 +1,22 @@
 import requests
 
+
 class LinkChecker:
     def __init__(self):
         self.url = ""
         self.status = -1
         self.code = -1
 
-    def getStatus(self):
+    def get_status(self):
         if self.status == -1:
-            return "Perform linkCheck()"
+            return "Perform link_check()"
         else:
             return self.status
 
-    def getCode(self):
+    def get_code(self):
         return self.code
 
-    def linkCheck(self, url):
+    def link_check(self, url):
         self.url = url
         try:
             response = requests.head(self.url, allow_redirects=True).status_code

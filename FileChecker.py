@@ -1,71 +1,72 @@
 import os
-import time
 import re
-from prettytable import PrettyTable
+import time
 from CodeChecker import CodeChecker
+from prettytable import PrettyTable
+
 
 class FileChecker:
-    def __init__(self, prodS, devS, code_check=False, link_check=False):
-        self.prodSite = prodS
-        self.devSite = devS
+    def __init__(self, prod_site_in, dev_site_in, code_check=False, link_check=False):
+        self.prod_site = prod_site_in
+        self.dev_site = dev_site_in
         # to track files, avoid double printing
         self.processed_files = set()
         self.code_check = code_check
         self.link_check = link_check
         # file sizing/info
         if code_check:
-            self.fileTable = PrettyTable([
+            self.file_table = PrettyTable([
                 '\033[97m{}\033[0m'.format("Filename"), '\033[97m{}\033[0m'.format("Found"),
                 '\033[97m{}\033[0m'.format("Code Match"), '\033[97m{}\033[0m'.format("Prod. Size (in Bytes)"),
                 '\033[97m{}\033[0m'.format("Dev. Size (in Bytes)"), '\033[97m{}\033[0m'.format("Prod. Modified"),
                 '\033[97m{}\033[0m'.format("Dev. Modified")])
         elif link_check:
-            self.fileTable = PrettyTable([
+            self.file_table = PrettyTable([
                 '\033[97m{}\033[0m'.format("Filename"), '\033[97m{}\033[0m'.format("Found"),
                 '\033[97m{}\033[0m'.format("Links Failed (PROD.)"), '\033[97m{}\033[0m'.format("Links Failed (DEV.)"),
                 '\033[97m{}\033[0m'.format("Prod. Size (in Bytes)"), '\033[97m{}\033[0m'.format("Dev. Size (in Bytes)"),
                 '\033[97m{}\033[0m'.format("Prod. Modified"), '\033[97m{}\033[0m'.format("Dev. Modified")])
         else:
-            self.fileTable = PrettyTable([
+            self.file_table = PrettyTable([
                 '\033[97m{}\033[0m'.format("Filename"), '\033[97m{}\033[0m'.format("Found"),
                 '\033[97m{}\033[0m'.format("Prod. Size (in Bytes)"), '\033[97m{}\033[0m'.format("Dev. Size (in Bytes)"),
                 '\033[97m{}\033[0m'.format("Prod. Modified"), '\033[97m{}\033[0m'.format("Dev. Modified")])
 
-        self.fileTable.align['\033[97m{}\033[0m'.format("Filename")] = "l"
+        self.file_table.align['\033[97m{}\033[0m'.format("Filename")] = "l"
 
-    def getFileTable(self):
-        return self.fileTable
+    def get_file_table(self):
+        return self.file_table
 
-    def escape_ansi(self, str):
-        ansi_escape = re.compile(r'(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]')
-        return ansi_escape.sub('', str)
+    def escape_ansi(self, str_in):
+        ansi_escape = re.compile(r'(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]')
+        return ansi_escape.sub('', str_in)
 
-    def exploreDir(self, dir_path, prefix="", site2=False):
+    def explore_directory(self, dir_path, prefix="", site2=False):
         for entry in os.listdir(dir_path):
             full_path = os.path.join(dir_path, entry)
             # path dependent
             if not site2:
-                rel_path = os.path.relpath(full_path, self.prodSite)
+                rel_path = os.path.relpath(full_path, self.prod_site)
             else:
-                rel_path = os.path.relpath(full_path, self.devSite)
+                rel_path = os.path.relpath(full_path, self.dev_site)
 
             # add prefix and entry recursively call, or process them
             if os.path.isdir(full_path):
-                if os.path.exists(f"{self.prodSite}/{rel_path}") and os.path.exists(f"{self.prodSite}/{rel_path}"):
-                    self.exploreDir(full_path, prefix=f"{prefix}{entry}/", site2=site2)
+                if os.path.exists(f"{self.prod_site}/{rel_path}") and os.path.exists(f"{self.prod_site}/{rel_path}"):
+                    self.explore_directory(full_path, prefix=f"{prefix}{entry}/", site2=site2)
                 else:
-                    self.exploreDir(full_path, prefix=f"{prefix}{entry}/", site2=site2)
+                    self.explore_directory(full_path, prefix=f"{prefix}{entry}/", site2=site2)
             else:
-                self.compAddRow(rel_path, prefix=prefix, entry=entry)
+                self.compare_add_row(rel_path, prefix=prefix, entry=entry)
 
-    def compAddRow(self, rel_path, prefix="", entry=""):
+    def compare_add_row(self, rel_path, prefix="", entry=""):
         # Process files only if not already processed
         full_path_key = os.path.join(prefix, entry)
         if full_path_key not in self.processed_files:
             self.processed_files.add(full_path_key)
 
-            prod = os.path.join(self.prodSite, rel_path)
-            dev = os.path.join(self.devSite, rel_path)
+            prod = os.path.join(self.prod_site, rel_path)
+            dev = os.path.join(self.dev_site, rel_path)
 
             prod_stats = os.stat(prod) if os.path.exists(prod) else False
             dev_stats = os.stat(dev) if os.path.exists(dev) else False
@@ -97,59 +98,58 @@ class FileChecker:
                 size = '\033[97m{}\033[0m'
                 change = '\033[97m{}\033[0m'
 
-
-            #only do search if user chose to
+            # only do search if user chose to
             if self.code_check or self.link_check:
-                codeMatch = "n/a"
+                code_match = "n/a"
                 links_prod = "n/a"
                 links_dev = "n/a"
                 # determine if a file is code, if so apply code matching
-                isCode = False
+                is_code = False
                 # file extensions being looked for, add more if necessary
-                fileExt = ['.html', '.css', '.js', '.php', '.xml', '.ts', '.sql', '.json', '.py']
-                noTrail = entry.split('@')
-                for ext in fileExt:
-                    if noTrail[0].lower().endswith(ext):
-                        isCode = True
+                file_extension = ['.html', '.css', '.js', '.php', '.xml', '.ts', '.sql', '.json', '.py']
+                no_trail = entry.split('@')
+                for ext in file_extension:
+                    if no_trail[0].lower().endswith(ext):
+                        is_code = True
 
                 # if not code: irrelevant
                 #   if only found in either: not comparable (irrelevant)
                 #       if the file is found in both and identical: True
                 #       else: false
-                if isCode:
+                if is_code:
                     if self.code_check:
                         # code compare
                         if found == '\033[92m{}\033[0m'.format("BOTH"):
-                            path1 = self.prodSite + '/' + prefix + entry
-                            path2 = self.devSite + '/' + prefix + entry
+                            path1 = self.prod_site + '/' + prefix + entry
+                            path2 = self.dev_site + '/' + prefix + entry
                             cc = CodeChecker(path1, path2)
                             cc.compare()
-                            if cc.getResult() == "Files are identical!":
-                                codeMatch = '\033[92m{}\033[0m'.format("TRUE")
+                            if cc.get_result() == "Files are identical!":
+                                code_match = '\033[92m{}\033[0m'.format("TRUE")
                             else:
-                                codeMatch = '\033[91m{}\033[0m'.format("FALSE")
+                                code_match = '\033[91m{}\033[0m'.format("FALSE")
                         else:
-                            codeMatch = "N/A"
+                            code_match = "N/A"
 
                     else:
                         # link check
                         if found == '\033[92m{}\033[0m'.format("BOTH"):
-                            cc = CodeChecker(self.prodSite + '/' + prefix + entry)
-                            links_failed = cc.checkLinks()
+                            cc = CodeChecker(self.prod_site + '/' + prefix + entry)
+                            links_failed = cc.check_links()
                             if links_failed > 0:
                                 links_prod = '\033[91m{}\033[0m'.format(links_failed)
                             else:
                                 links_prod = '\033[92m{}\033[0m'.format(links_failed)
-                            cc = CodeChecker(self.devSite + '/' + prefix + entry)
-                            links_failed = cc.checkLinks()
+                            cc = CodeChecker(self.dev_site + '/' + prefix + entry)
+                            links_failed = cc.check_links()
                             if links_failed > 0:
                                 links_dev = '\033[91m{}\033[0m'.format(links_failed)
                             else:
                                 links_dev = '\033[92m{}\033[0m'.format(links_failed)
 
                         elif found == '\033[93m{}\033[0m'.format("PROD."):
-                            cc = CodeChecker(self.prodSite + '/' + prefix + entry)
-                            links_failed = cc.checkLinks()
+                            cc = CodeChecker(self.prod_site + '/' + prefix + entry)
+                            links_failed = cc.check_links()
                             if links_failed > 0:
                                 links_prod = '\033[91m{}\033[0m'.format(links_failed)
                             else:
@@ -157,8 +157,8 @@ class FileChecker:
                             links_dev = "N/A"
 
                         else:
-                            cc = CodeChecker(self.devSite + '/' + prefix + entry)
-                            links_failed = cc.checkLinks()
+                            cc = CodeChecker(self.dev_site + '/' + prefix + entry)
+                            links_failed = cc.check_links()
                             if links_failed > 0:
                                 links_dev = '\033[91m{}\033[0m'.format(links_failed)
                             else:
@@ -166,7 +166,7 @@ class FileChecker:
                             links_prod = "N/A"
                 else:
                     if self.code_check:
-                        codeMatch = "N/A"
+                        code_match = "N/A"
                     else:
                         links_prod = "N/A"
                         links_dev = "N/A"
@@ -182,7 +182,7 @@ class FileChecker:
                         for i, directory in enumerate(directories):
                             if i < len(directories) - 1:
                                 #                                      removes color for the comparison
-                                if os.path.exists(self.devSite + '/' + self.escape_ansi(prefix)):
+                                if os.path.exists(self.dev_site + '/' + self.escape_ansi(prefix)):
                                     prefix = prefix + '\033[92m{}\033[0m'.format(directory + '/')
                                 else:
                                     prefix = prefix + '\033[93m{}\033[0m'.format(directory + '/')
@@ -193,17 +193,16 @@ class FileChecker:
                         for i, directory in enumerate(directories):
                             if i < len(directories) - 1:
                                 #                                       removes color for the comparison
-                                if os.path.exists(self.prodSite + '/' + self.escape_ansi(prefix)):
+                                if os.path.exists(self.prod_site + '/' + self.escape_ansi(prefix)):
                                     prefix = prefix + '\033[92m{}\033[0m'.format(directory + '/')
                                 else:
                                     prefix = prefix + '\033[94m{}\033[0m'.format(directory + '/')
 
-
                 if self.code_check:
                     # add row based on above
-                    self.fileTable.add_row([
+                    self.file_table.add_row([
                         f"{prefix}{match}{entry}\033[0m",
-                        found, codeMatch,
+                        found, code_match,
                         size.format(prod_stats.st_size) if prod_stats else "N/A",
                         size.format(dev_stats.st_size) if dev_stats else "N/A",
                         change.format(time.ctime(round(prod_stats.st_mtime))) if prod_stats else "N/A",
@@ -211,7 +210,7 @@ class FileChecker:
                     ])
                 else:
                     # add row based on above
-                    self.fileTable.add_row([
+                    self.file_table.add_row([
                         f"{prefix}{match}{entry}\033[0m",
                         found, links_prod, links_dev,
                         size.format(prod_stats.st_size) if prod_stats else "N/A",
@@ -232,7 +231,7 @@ class FileChecker:
                         for i, directory in enumerate(directories):
                             if i < len(directories) - 1:
                                 #                                      removes color for the comparison
-                                if os.path.exists(self.devSite + '/' + self.escape_ansi(prefix)):
+                                if os.path.exists(self.dev_site + '/' + self.escape_ansi(prefix)):
                                     prefix = prefix + '\033[92m{}\033[0m'.format(directory + '/')
                                 else:
                                     prefix = prefix + '\033[93m{}\033[0m'.format(directory + '/')
@@ -243,13 +242,13 @@ class FileChecker:
                         for i, directory in enumerate(directories):
                             if i < len(directories) - 1:
                                 #                                       removes color for the comparison
-                                if os.path.exists(self.prodSite + '/' + self.escape_ansi(prefix)):
+                                if os.path.exists(self.prod_site + '/' + self.escape_ansi(prefix)):
                                     prefix = prefix + '\033[92m{}\033[0m'.format(directory + '/')
                                 else:
                                     prefix = prefix + '\033[94m{}\033[0m'.format(directory + '/')
 
                 # add row based on above
-                self.fileTable.add_row([
+                self.file_table.add_row([
                     f"{prefix}{match}{entry}\033[0m",
                     found,
                     size.format(prod_stats.st_size) if prod_stats else "N/A",
@@ -258,6 +257,6 @@ class FileChecker:
                     change.format(time.ctime(round(dev_stats.st_mtime))) if dev_stats else "N/A"
                 ])
 
-    def makeTable(self):
-        self.exploreDir(self.prodSite)
-        self.exploreDir(self.devSite, site2=True)
+    def make_table(self):
+        self.explore_directory(self.prod_site)
+        self.explore_directory(self.dev_site, site2=True)

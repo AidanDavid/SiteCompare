@@ -1,61 +1,76 @@
+import os
+import subprocess
 from FileChecker import FileChecker
 from CodeChecker import CodeChecker
 from LinkChecker import LinkChecker
-import os
+
 
 class MainClass:
+
     def __init__(self):
         pass
 
-    def fileComp(self, path1, path2, cc=False, lc=False):
+    def runcmd(self, cmd, verbose=False):
+        process = subprocess.run(
+            cmd,
+            capture_output=True,
+            check=True,
+            text=True,
+            shell=True
+        )
+        if verbose:
+            print(process.stdout.strip(), process.stderr)
+
+    def file_comp(self, path1, path2, cc=False, lc=False):
         # production site path
-        prodSite = path1 # example: C:\Users\aidan\OneDrive\Desktop\Wget\websites\bravenlyglobal.com
+        prod_site = path1  # example: C:\Users\aidan\OneDrive\Desktop\Wget\websites\bravenlyglobal.com
         # development site path
-        devSite = path2 # example: C:\Users\aidan\OneDrive\Desktop\Wget\websites\bravenlyglobal.d-solmedia.com
+        dev_site = path2  # example: C:\Users\aidan\OneDrive\Desktop\Wget\websites\bravenlyglobal.d-solmedia.com
 
-        fc = FileChecker(prodSite, devSite, code_check=cc, link_check=lc)
-        fc.makeTable()
-        print(fc.getFileTable())
+        fc = FileChecker(prod_site, dev_site, code_check=cc, link_check=lc)
+        fc.make_table()
+        print(fc.get_file_table())
 
-    def codeComp(self, path1, path2):
+    def code_comp(self, path1, path2):
         # code 1 path
-        file1 = path1 # C:/Users/aidan/OneDrive/Desktop/CodeFiles/code1.txt
+        file1 = path1  # C:/Users/aidan/OneDrive/Desktop/CodeFiles/code1.txt
         # code 2 path
-        file2 = path2 # C:/Users/aidan/OneDrive/Desktop/CodeFiles/code2.txt
+        file2 = path2  # C:/Users/aidan/OneDrive/Desktop/CodeFiles/code2.txt
 
         cc = CodeChecker(file1, file2)
         cc.compare()
-        print(cc.getResult())
+        print(cc.get_result())
 
-    def linksCheck(self, path):
-        file = path # C:/Users/aidan/OneDrive/Desktop/CodeFiles/code3.html
+    def links_check(self, path):
+        file = path  # C:/Users/aidan/OneDrive/Desktop/CodeFiles/code3.html
 
         cc = CodeChecker(file)
-        cc.checkLinksPrint()
+        cc.check_links_print()
 
-    def getCheckPath(self):
+    def get_check_path(self):
         working = False
-        safePath = ""
+        safe_path = ""
         while not working:
             path = input("Enter a path: ")
             # backslashes may cause errors
-            safePath = path.replace("\\", "/")
-            working = os.path.exists(safePath)
+            safe_path = path.replace("\\", "/")
+            working = os.path.exists(safe_path)
             if not working:
                 print("Invalid path")
-        return safePath
+        return safe_path
 
     def get_check_sub_path(self, super_path):
         working = False
-        safePath = super_path
+        safe_path = super_path
         while not working:
-            path = input("Enter filename: ")
+            path = input("Enter path: ")
             # backslashes may cause errors
-            safePath = path.replace("\\", "/")
-            working = os.path.exists(super_path + '/' + safePath)
+            safe_path = path.replace("\\", "/")
+            working = os.path.exists(super_path + '/' + safe_path)
             if not working:
                 print("Invalid path")
-        return safePath
+        return safe_path
+
 
 def main():
     m = MainClass()
@@ -67,31 +82,59 @@ def main():
             print("*\tSite Compare\t*")
             print("*\t*\t*\t*\t*\t*\n")
             answer = input("What do you want to perform:\n"
+                           "(w) Wget\n"
                            "(f) File Comparison\n"
                            "(c) Code Comparison\n"
                            "(l) Link check (HTML file)\n"
                            "(q) Quit\n")
 
-            if answer == 'f':
-                # get/check first filepath
-                path1 = m.getCheckPath()
-                # get/check second filepath
-                path2 = m.getCheckPath()
+            if answer == 'w':
+                url = input("Enter url of site to download: ")
+                print("Enter the destination for the downloaded files below.")
+                path = m.get_check_path()
+                m.runcmd(f'wget --directory-prefix={path} --random-wait -r -p -e robots=off -U mozilla {url}', verbose=True)
+
+            elif answer == 'f':
+                do_wget = input("Do you need to perform (1) or (2) Wget(s) before starting (else: no): ")
+                if do_wget == '1':
+                    url = input("Enter url of site to download: ")
+                    print("Enter the destination for the downloaded files below.")
+                    path1 = m.get_check_path()
+                    m.runcmd(["wget", "--random-wait", "-r", "-p", "-e", "robots=off", "-U", "mozilla",
+                               f"{url}"], verbose=True, cwd=f"{path1}")
+                    print("Enter path to second file set below.")
+                    path2 = m.get_check_path()
+                elif do_wget == '2':
+                    url = input("Enter url of the first site to download: ")
+                    print("Enter the destination for the downloaded files below.")
+                    path1 = m.get_check_path()
+                    m.runcmd(["wget", "--random-wait", "-r", "-p", "-e", "robots=off", "-U", "mozilla",
+                               f"{url}"], verbose=True, cwd=f"{path1}")
+                    url = input("Enter url of the second site to download: ")
+                    print("Enter the destination for the downloaded files below.")
+                    path2 = m.get_check_path()
+                    m.runcmd(["wget", "--random-wait", "-r", "-p", "-e", "robots=off", "-U", "mozilla",
+                               f"{url}"], verbose=True, cwd=f"{path2}")
+                else:
+                    # get/check first filepath
+                    path1 = m.get_check_path()
+                    # get/check second filepath
+                    path2 = m.get_check_path()
 
                 reply = input("Code check (c) or link check (l) (else: neither), performed on files: ")
                 if reply == 'c':
-                    m.fileComp(path1, path2, cc=True)
+                    m.file_comp(path1, path2, cc=True)
                 elif reply == 'l':
-                    m.fileComp(path1, path2, lc=True)
+                    m.file_comp(path1, path2, lc=True)
                 else:
-                    m.fileComp(path1, path2)
+                    m.file_comp(path1, path2)
                 ans = 'x'
                 while ans != 'q' and ans != 'r':
                     ans = input("\n\nWhat do you want to perform based on the table generated:\n"
-                          "(c) Code Comparison\n"
-                          "(l) Link check (HTML file)\n"
-                          "(r) Return to Main Menu\n"
-                          "(q) Quit\n")
+                                "(c) Code Comparison\n"
+                                "(l) Link check (HTML file)\n"
+                                "(r) Return to Main Menu\n"
+                                "(q) Quit\n")
 
                     # perform code compare based on files found by FileChecker
                     if ans == 'c':
@@ -104,7 +147,7 @@ def main():
                             if inp == 'b':
                                 test_path = m.get_check_sub_path(path1)
                                 if os.path.exists(path2 + '/' + test_path):
-                                    m.codeComp(path1 + '/' + test_path, path2 + '/' + test_path)
+                                    m.code_comp(path1 + '/' + test_path, path2 + '/' + test_path)
                                     break
                                 else:
                                     print("File is not found in BOTH, please pick another filename or category.")
@@ -117,15 +160,15 @@ def main():
                                     inp2 = input("Is other file in PROD. (p), DEV. (d), or elsewhere (e): ")
                                     if inp2 == 'p':
                                         test_path2 = m.get_check_sub_path(path1)
-                                        m.codeComp(path1 + '/' + test_path, path1 + '/' + test_path2)
+                                        m.code_comp(path1 + '/' + test_path, path1 + '/' + test_path2)
                                         break
                                     elif inp2 == 'd':
                                         test_path2 = m.get_check_sub_path(path2)
-                                        m.codeComp(path1 + '/' + test_path, path2 + '/' + test_path2)
+                                        m.code_comp(path1 + '/' + test_path, path2 + '/' + test_path2)
                                         break
                                     elif inp2 == 'e':
-                                        e_path = m.getCheckPath()
-                                        m.codeComp(path1 + '/' + test_path, e_path)
+                                        e_path = m.get_check_path()
+                                        m.code_comp(path1 + '/' + test_path, e_path)
                                         break
                                     elif inp2 == 'r':
                                         break
@@ -140,15 +183,15 @@ def main():
                                     inp2 = input("Is other file in PROD. (p), DEV. (d), or elsewhere (e): ")
                                     if inp2 == 'p':
                                         test_path2 = m.get_check_sub_path(path1)
-                                        m.codeComp(path2 + '/' + test_path, path1 + '/' + test_path2)
+                                        m.code_comp(path2 + '/' + test_path, path1 + '/' + test_path2)
                                         break
                                     elif inp2 == 'd':
                                         test_path2 = m.get_check_sub_path(path2)
-                                        m.codeComp(path2 + '/' + test_path, path2 + '/' + test_path2)
+                                        m.code_comp(path2 + '/' + test_path, path2 + '/' + test_path2)
                                         break
                                     elif inp2 == 'e':
-                                        e_path = m.getCheckPath()
-                                        m.codeComp(path2 + '/' + test_path, e_path)
+                                        e_path = m.get_check_path()
+                                        m.code_comp(path2 + '/' + test_path, e_path)
                                         break
                                     elif inp2 == 'r':
                                         break
@@ -168,11 +211,11 @@ def main():
                             inp = input("PROD. (p), or DEV. (d): ")
                             if inp == 'p':
                                 test_path = m.get_check_sub_path(path1)
-                                m.linksCheck(path1 + '/' + test_path)
+                                m.links_check(path1 + '/' + test_path)
                                 break
                             elif inp == 'd':
                                 test_path = m.get_check_sub_path(path2)
-                                m.linksCheck(path2 + '/' + test_path)
+                                m.links_check(path2 + '/' + test_path)
                                 break
                             elif inp == 'r':
                                 break
@@ -185,13 +228,12 @@ def main():
                     else:
                         "Enter c, l, r, or q"
 
-
             elif answer == 'c':
                 # get/check first filepath
-                path1 = m.getCheckPath()
+                path1 = m.get_check_path()
                 # get/check second filepath
-                path2 = m.getCheckPath()
-                m.codeComp(path1, path2)
+                path2 = m.get_check_path()
+                m.code_comp(path1, path2)
 
             elif answer == 'l':
                 reply = 'x'
@@ -200,20 +242,21 @@ def main():
                     if reply == 's':
                         url = input("Paste URL here: ")
                         lc = LinkChecker()
-                        lc.linkCheck(url)
-                        status = lc.getStatus()
+                        lc.link_check(url)
+                        status = lc.get_status()
                         print(f"The URL above is {status}")
                         break
                     elif reply == 'f':
-                        path = m.getCheckPath()
-                        m.linksCheck(path)
+                        path = m.get_check_path()
+                        m.links_check(path)
                         break
 
             else:
-                "Enter f, c, l, or q"
+                "Enter w, f, c, l, or q"
 
     except KeyboardInterrupt:
         print("\nProgram interrupted!")
 
+
 if __name__ == "__main__":
-  main()
+    main()
