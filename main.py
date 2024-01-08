@@ -15,8 +15,7 @@ class MainClass:
             cmd,
             capture_output=True,
             check=True,
-            text=True,
-            shell=True
+            text=True
         )
         if verbose:
             print(process.stdout.strip(), process.stderr)
@@ -92,7 +91,8 @@ def main():
                 url = input("Enter url of site to download: ")
                 print("Enter the destination for the downloaded files below.")
                 path = m.get_check_path()
-                m.runcmd(f'wget --directory-prefix={path} --random-wait -r -p -e robots=off -U mozilla {url}', verbose=True)
+                m.runcmd(f'wget --directory-prefix={path} --random-wait -r -p -e robots=off -U mozilla {url}',
+                         verbose=True)
 
             elif answer == 'f':
                 do_wget = input("Do you need to perform (1) or (2) Wget(s) before starting (else: no): ")
