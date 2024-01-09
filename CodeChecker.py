@@ -12,6 +12,9 @@ class CodeChecker:
         self.identical = True
         self.result = "Call compare() first"
 
+    def replace_tabs(self, in_string, tab_width=4):
+        return in_string.replace('\t', ' ' * tab_width)
+
     def get_result(self):
         return self.result
 
@@ -20,43 +23,52 @@ class CodeChecker:
         line_num1 = 1
         line_num2 = 1
 
+        # printed lines to maintain line matching
+        pline1 = 1
+        pline2 = 1
+
         content1 = ""
         content2 = ""
 
-        for line in content:
+        for i, line in enumerate(content):
             # lines not in either file
             if line[0] == '?':
                 pass
             # added lines
             elif line[0] == '+':
                 self.identical = False
-                # remove \n to avoid colour bleed
-                content2 = content2 + '\033[92m{}\033[0m'.format(f'{line_num2}: {line[:-1]}')
-                # add it back
-                if line[-1] != '\n':  # last line only
-                    content2 = content2 + '\033[92m{}\033[0m'.format(f'{line[-1]}')
-                else:
-                    content2 = content2 + line[-1]
+                # color line number only to avoid colour bleed
+                green_num = '\033[92m{}\033[0m'.format(line_num2)
+                content2 = content2 + '\033[92m{}\033[0m'.format(f'{green_num}: {self.replace_tabs(line[1:])}')
                 line_num2 += 1
+                pline2 += 1
             # deleted lines
             elif line[0] == '-':
                 self.identical = False
-                # remove last char to avoid colour bleed
-                content1 = content1 + '\033[91m{}\033[0m'.format(f'{line_num1}: {line[:-1]}')
-                # add it back
-                if line[-1] != '\n':  # last line only
-                    content1 = content1 + '\033[91m{}\033[0m'.format(f'{line[-1]}')
-                else:
-                    content1 = content1 + line[-1]
+                # color line number only to avoid colour bleed
+                red_num = '\033[91m{}\033[0m'.format(line_num1)
+                content1 = content1 + '\033[91m{}\033[0m'.format(f'{red_num}: {self.replace_tabs(line[1:])}')
                 line_num1 += 1
+                pline1 += 1
             # shared lines
             else:
                 white_num = '\033[97m{}\033[0m'.format(line_num1)
-                content1 = content1 + f'{white_num}: {line}'
+                content1 = content1 + f'{white_num}: {self.replace_tabs(line)}'
                 white_num = '\033[97m{}\033[0m'.format(line_num2)
-                content2 = content2 + f'{white_num}: {line}'
+                content2 = content2 + f'{white_num}: {self.replace_tabs(line)}'
                 line_num1 += 1
                 line_num2 += 1
+
+            # add empty lines to line up the output, this may still be uneven if lines are too long
+            if pline1 > pline2:
+                if i < len(content) and content[i+1][0] != '?' and content[i+1][0] != '+':
+                    content2 = content2 + '\n'
+                    pline2 += 1
+                else:
+                    pline2 == 1
+            elif pline1 < pline2:
+                content1 = content1 + '\n'
+                pline1 += 1
 
         return content1, content2
 
