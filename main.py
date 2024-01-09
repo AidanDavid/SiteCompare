@@ -11,20 +11,28 @@ class MainClass:
         pass
 
     def runcmd(self, cmd, verbose=False):
-        process = subprocess.run(
-            cmd,
-            capture_output=True,
-            check=True,
-            text=True
-        )
-        if verbose:
-            print(process.stdout.strip(), process.stderr)
+        try:
+            process = subprocess.run(
+                # replace this path with your wget.exe path
+                ["C:/Users/aidan/OneDrive/Documents/MobaXterm/slash/aidan_desktoprdp3bbd/bin/wget.exe",
+                 "--no-check-certificate", "--random-wait", "-r", "-p", "-e", "robots=off", "-U", "mozilla"] + cmd,
+                capture_output=True,
+                check=True,
+                text=True
+            )
+            if verbose:
+                print(process.stdout.strip(), process.stderr)
+            print("Wget complete!")
+        except subprocess.CalledProcessError as e:
+            print(f"Command triggered an error, exit code: {e.returncode}")
+            if e.returncode == 8:
+                print("Wget completed, but got an error response from the server!")
 
     def file_comp(self, path1, path2, cc=False, lc=False):
         # production site path
-        prod_site = path1  # example: C:\Users\aidan\OneDrive\Desktop\Wget\websites\bravenlyglobal.com
+        prod_site = path1  # ex: C:\Users\aidan\OneDrive\Desktop\Wget\websites\bravenlyglobal.com
         # development site path
-        dev_site = path2  # example: C:\Users\aidan\OneDrive\Desktop\Wget\websites\bravenlyglobal.d-solmedia.com
+        dev_site = path2  # ex: C:\Users\aidan\OneDrive\Desktop\Wget\websites\bravenlyglobal.d-solmedia.com
 
         fc = FileChecker(prod_site, dev_site, code_check=cc, link_check=lc)
         fc.make_table()
@@ -32,16 +40,16 @@ class MainClass:
 
     def code_comp(self, path1, path2):
         # code 1 path
-        file1 = path1  # C:/Users/aidan/OneDrive/Desktop/CodeFiles/code1.txt
+        file1 = path1  # ex: C:/Users/aidan/OneDrive/Desktop/CodeFiles/code1.txt
         # code 2 path
-        file2 = path2  # C:/Users/aidan/OneDrive/Desktop/CodeFiles/code2.txt
+        file2 = path2  # ex: C:/Users/aidan/OneDrive/Desktop/CodeFiles/code2.txt
 
         cc = CodeChecker(file1, file2)
         cc.compare()
         print(cc.get_result())
 
     def links_check(self, path):
-        file = path  # C:/Users/aidan/OneDrive/Desktop/CodeFiles/code3.html
+        file = path  # ex: C:/Users/aidan/OneDrive/Desktop/CodeFiles/code3.html
 
         cc = CodeChecker(file)
         cc.check_links_print()
@@ -88,11 +96,10 @@ def main():
                            "(q) Quit\n")
 
             if answer == 'w':
-                url = input("Enter url of site to download: ")
+                url = input("Enter url of site to download: ")  # ex: https://bravenlyglobal.d-solmedia.com/
                 print("Enter the destination for the downloaded files below.")
                 path = m.get_check_path()
-                m.runcmd(f'wget --directory-prefix={path} --random-wait -r -p -e robots=off -U mozilla {url}',
-                         verbose=True)
+                m.runcmd([f"--directory-prefix={path}", f"{url}"], verbose=True)
 
             elif answer == 'f':
                 do_wget = input("Do you need to perform (1) or (2) Wget(s) before starting (else: no): ")
@@ -100,21 +107,18 @@ def main():
                     url = input("Enter url of site to download: ")
                     print("Enter the destination for the downloaded files below.")
                     path1 = m.get_check_path()
-                    m.runcmd(["wget", "--random-wait", "-r", "-p", "-e", "robots=off", "-U", "mozilla",
-                               f"{url}"], verbose=True, cwd=f"{path1}")
+                    m.runcmd([f"--directory-prefix={path1}", f"{url}"], verbose=True)
                     print("Enter path to second file set below.")
                     path2 = m.get_check_path()
                 elif do_wget == '2':
                     url = input("Enter url of the first site to download: ")
                     print("Enter the destination for the downloaded files below.")
                     path1 = m.get_check_path()
-                    m.runcmd(["wget", "--random-wait", "-r", "-p", "-e", "robots=off", "-U", "mozilla",
-                               f"{url}"], verbose=True, cwd=f"{path1}")
+                    m.runcmd([f"--directory-prefix={path1}", f"{url}"], verbose=True)
                     url = input("Enter url of the second site to download: ")
                     print("Enter the destination for the downloaded files below.")
                     path2 = m.get_check_path()
-                    m.runcmd(["wget", "--random-wait", "-r", "-p", "-e", "robots=off", "-U", "mozilla",
-                               f"{url}"], verbose=True, cwd=f"{path2}")
+                    m.runcmd([f"--directory-prefix={path2}", f"{url}"], verbose=True)
                 else:
                     # get/check first filepath
                     path1 = m.get_check_path()

@@ -5,6 +5,7 @@ Code developed in Python (v.3.10)
 Before running the application, you may need to download Wget to your computer.
  - Wget is used to crawl websites and download the necessary files. 
  - If you already have the files downloaded locally, there is no need for Wget.
+ - In the "runcmd" function of 'main.py', replace the path to wget.exe with your own.
 
 Python libraries you may have to install include:
 - prettytable
@@ -16,6 +17,8 @@ It allows users to download websites, compare directories, files and test links.
 main (class)
 - takes user inputs to be performed upon
 - user can perform Wget to download website files
+  - When asked to input a path, Wget will create a folder with the name of the site at the end of that path
+  - Doing a Wget will overwrite a folder of the same name, use a different path if this is to be avoided
 - user can perform file comparison (FileChecker) on their directories (Wget or not)
 - user can perform code comparison (CodeChecker) on their files
 - user can perform link testing (LinkChecker) on files or urls
@@ -39,7 +42,7 @@ LinkChecker (class)
 General How-to
 - Hopefully you find the program straight-forward throughout, but some below details maybe unclear:
 
-- performing a Wget takes time, if you already have the files downloaded, you can skip this
+- performing a Wget takes time based on website size (could be minutes to hours per site), if you already have the files downloaded, you can skip this
 
 - oftentimes, you can input 'r' to return a step if you entered the wrong option
   - if asked to enter a path or url, this option is not available (enter a valid response to continue)

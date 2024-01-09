@@ -41,6 +41,33 @@ class FileChecker:
         ansi_escape = re.compile(r'(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]')
         return ansi_escape.sub('', str_in)
 
+    def color_prefix(self, prefix, prod=False):
+        # color matching, green; else yellow
+        if prod:
+            directories = prefix.split('/')
+            new_prefix = ""
+            for i, directory in enumerate(directories):
+                if i < len(directories) - 1:
+                    #                                      removes color for the comparison
+                    if not os.path.exists(self.dev_site + '/' + self.escape_ansi(new_prefix) + directory):
+                        new_prefix = new_prefix + '\033[93m{}\033[0m'.format(directory + '/')
+                    else:
+                        new_prefix = new_prefix + '\033[92m{}\033[0m'.format(directory + '/')
+
+        # color matching, green; else blue
+        else:
+            directories = prefix.split('/')
+            new_prefix = ""
+            for i, directory in enumerate(directories):
+                if i < len(directories) - 1:
+                    #                                       removes color for the comparison
+                    if not os.path.exists(self.prod_site + '/' + self.escape_ansi(new_prefix) + directory):
+                        new_prefix = new_prefix + '\033[94m{}\033[0m'.format(directory + '/')
+                    else:
+                        new_prefix = new_prefix + '\033[92m{}\033[0m'.format(directory + '/')
+
+        return new_prefix
+
     def explore_directory(self, dir_path, prefix="", site2=False):
         for entry in os.listdir(dir_path):
             full_path = os.path.join(dir_path, entry)
@@ -175,28 +202,7 @@ class FileChecker:
                 if prod_stats and dev_stats:
                     prefix = '\033[92m{}\033[0m'.format(prefix)
                 else:
-                    # color matching, green; else yellow
-                    if prod_stats:
-                        directories = prefix.split('/')
-                        prefix = ""
-                        for i, directory in enumerate(directories):
-                            if i < len(directories) - 1:
-                                #                                      removes color for the comparison
-                                if os.path.exists(self.dev_site + '/' + self.escape_ansi(prefix)):
-                                    prefix = prefix + '\033[92m{}\033[0m'.format(directory + '/')
-                                else:
-                                    prefix = prefix + '\033[93m{}\033[0m'.format(directory + '/')
-                    # color matching, green; else blue
-                    else:
-                        directories = prefix.split('/')
-                        prefix = ""
-                        for i, directory in enumerate(directories):
-                            if i < len(directories) - 1:
-                                #                                       removes color for the comparison
-                                if os.path.exists(self.prod_site + '/' + self.escape_ansi(prefix)):
-                                    prefix = prefix + '\033[92m{}\033[0m'.format(directory + '/')
-                                else:
-                                    prefix = prefix + '\033[94m{}\033[0m'.format(directory + '/')
+                    prefix = self.color_prefix(prefix, prod=prod_stats)
 
                 if self.code_check:
                     # add row based on above
@@ -224,28 +230,7 @@ class FileChecker:
                 if prod_stats and dev_stats:
                     prefix = '\033[92m{}\033[0m'.format(prefix)
                 else:
-                    # color matching, green; else yellow
-                    if prod_stats:
-                        directories = prefix.split('/')
-                        prefix = ""
-                        for i, directory in enumerate(directories):
-                            if i < len(directories) - 1:
-                                #                                      removes color for the comparison
-                                if os.path.exists(self.dev_site + '/' + self.escape_ansi(prefix)):
-                                    prefix = prefix + '\033[92m{}\033[0m'.format(directory + '/')
-                                else:
-                                    prefix = prefix + '\033[93m{}\033[0m'.format(directory + '/')
-                    # color matching, green; else blue
-                    else:
-                        directories = prefix.split('/')
-                        prefix = ""
-                        for i, directory in enumerate(directories):
-                            if i < len(directories) - 1:
-                                #                                       removes color for the comparison
-                                if os.path.exists(self.prod_site + '/' + self.escape_ansi(prefix)):
-                                    prefix = prefix + '\033[92m{}\033[0m'.format(directory + '/')
-                                else:
-                                    prefix = prefix + '\033[94m{}\033[0m'.format(directory + '/')
+                    prefix = self.color_prefix(prefix, prod=prod_stats)
 
                 # add row based on above
                 self.file_table.add_row([
