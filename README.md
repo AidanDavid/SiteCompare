@@ -1,5 +1,5 @@
 # SiteCompare
-Site comparing application for D-SOLMEDIA
+Site comparing application for D-SOL Media
 Code developed in Python (v.3.10)
 
 Before running the application, you may need to download Wget to your computer.
