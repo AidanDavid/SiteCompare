@@ -1,4 +1,4 @@
-###               Requirements               ###
-#  Versions may or may not affect performance  #
+###         Requirements         ###
+#  Version may affect performance  #
 prettytable >= 3.9.0    #used version 3.9.0
 requests >= 2.31.0	    #used version 2.31.0

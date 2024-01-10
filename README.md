@@ -5,7 +5,13 @@ Code developed in Python (v.3.10)
 Before running the application, you may need to download Wget to your computer.
  - Wget is used to crawl websites and download the necessary files. 
  - If you already have the files downloaded locally, there is no need for Wget.
- - In the "runcmd" function of 'main.py', replace the path to wget.exe with your own.
+
+  If you have never used Wget before:
+   - On Linux, you may already have Wget preinstalled.
+   - On MacOS, install Wget using Homebrew.
+   - On Windows, download Wget (https://eternallybored.org/misc/wget/). 
+     - Once it’s downloaded, make sure it’s added to the PATH variable.
+   https://www.scrapingbee.com/blog/python-wget/ may be useful for details or assistance.
 
 Python libraries you may have to install include:
 - requests
@@ -59,3 +65,5 @@ General How-to
   - the addition of code comparison may add several minutes before the table is generated
   - the addition of link checking may add hours before the table is generated
   - when performing a subsequent code or link check, copy the whole local path found in the leftmost column
+  - on line 156, there is a list of file endings that are looked for as code:
+    - if certain code files are not being recognized, you may have to add the file ending to the list (ex. .cpp)
