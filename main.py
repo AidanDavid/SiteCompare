@@ -13,8 +13,8 @@ class MainClass:
     def runcmd(self, cmd, verbose=False):
         try:
             process = subprocess.run(
-                # replace this path with your wget.exe path
-                ["C:/Users/aidan/OneDrive/Documents/MobaXterm/slash/aidan_desktoprdp3bbd/bin/wget.exe",
+                # replace "wget" with your wget.exe path if you are getting error finding wget
+                ["wget",
                  "--no-check-certificate", "--random-wait", "-r", "-p", "-e", "robots=off", "-U", "mozilla"] + cmd,
                 capture_output=True,
                 check=True,
@@ -30,9 +30,9 @@ class MainClass:
 
     def file_comp(self, path1, path2, cc=False, lc=False):
         # production site path
-        prod_site = path1  # ex: C:\Users\aidan\OneDrive\Desktop\Wget\websites\bravenlyglobal.com
+        prod_site = path1
         # development site path
-        dev_site = path2  # ex: C:\Users\aidan\OneDrive\Desktop\Wget\websites\bravenlyglobal.d-solmedia.com
+        dev_site = path2
 
         fc = FileChecker(prod_site, dev_site, code_check=cc, link_check=lc)
         fc.make_table()
@@ -40,30 +40,37 @@ class MainClass:
 
     def code_comp(self, path1, path2):
         # code 1 path
-        file1 = path1  # ex: C:/Users/aidan/OneDrive/Desktop/CodeFiles/code1.txt
+        file1 = path1
         # code 2 path
-        file2 = path2  # ex: C:/Users/aidan/OneDrive/Desktop/CodeFiles/code2.txt
+        file2 = path2
 
         cc = CodeChecker(file1, file2)
         cc.compare()
         print(cc.get_result())
 
     def links_check(self, path):
-        file = path  # ex: C:/Users/aidan/OneDrive/Desktop/CodeFiles/code3.html
+        file = path
 
         cc = CodeChecker(file)
         cc.check_links_print()
 
-    def get_check_path(self):
-        working = False
-        safe_path = ""
-        while not working:
-            path = input("Enter a path: ")
+    def get_check_path(self, make=False):
+        if make:
+            path = input("Enter a path, will be made if does not already exist: ")
             # backslashes may cause errors
             safe_path = path.replace("\\", "/")
-            working = os.path.exists(safe_path)
-            if not working:
-                print("Invalid path")
+            if not os.path.exists(safe_path):
+                os.makedirs(safe_path)
+        else:
+            working = False
+            safe_path = ""
+            while not working:
+                path = input("Enter a path: ")
+                # backslashes may cause errors
+                safe_path = path.replace("\\", "/")
+                working = os.path.exists(safe_path)
+                if not working:
+                    print("Invalid path")
         return safe_path
 
     def get_check_sub_path(self, super_path):
@@ -96,9 +103,9 @@ def main():
                            "(q) Quit\n")
 
             if answer == 'w':
-                url = input("Enter url of site to download: ")  # ex: https://bravenlyglobal.d-solmedia.com/
+                url = input("Enter url of site to download: ")
                 print("Enter the destination for the downloaded files below.")
-                path = m.get_check_path()
+                path = m.get_check_path(make=True)
                 m.runcmd([f"--directory-prefix={path}", f"{url}"], verbose=True)
 
             elif answer == 'f':
@@ -106,23 +113,43 @@ def main():
                 if do_wget == '1':
                     url = input("Enter url of site to download: ")
                     print("Enter the destination for the downloaded files below.")
-                    path1 = m.get_check_path()
+                    path1 = m.get_check_path(make=True)
                     m.runcmd([f"--directory-prefix={path1}", f"{url}"], verbose=True)
                     print("Enter path to second file set below.")
                     path2 = m.get_check_path()
+
+                    which_prod = input("Is the first site production? yes (y), no (else): ")
+                    if which_prod == 'y':
+                        pass
+                    else:
+                        temp = path1
+                        path1 = path2
+                        path2 = temp
+
                 elif do_wget == '2':
                     url = input("Enter url of the first site to download: ")
                     print("Enter the destination for the downloaded files below.")
-                    path1 = m.get_check_path()
+                    path1 = m.get_check_path(make=True)
                     m.runcmd([f"--directory-prefix={path1}", f"{url}"], verbose=True)
                     url = input("Enter url of the second site to download: ")
                     print("Enter the destination for the downloaded files below.")
-                    path2 = m.get_check_path()
+                    path2 = m.get_check_path(make=True)
                     m.runcmd([f"--directory-prefix={path2}", f"{url}"], verbose=True)
+
+                    which_prod = input("Is the first site production? yes (y), no (else): ")
+                    if which_prod == 'y':
+                        pass
+                    else:
+                        temp = path1
+                        path1 = path2
+                        path2 = temp
+
                 else:
                     # get/check first filepath
+                    print("Development site")
                     path1 = m.get_check_path()
                     # get/check second filepath
+                    print("Production site")
                     path2 = m.get_check_path()
 
                 reply = input("Code check (c) or link check (l) (else: neither), performed on files: ")

@@ -18,7 +18,7 @@ class CodeChecker:
     def get_result(self):
         return self.result
 
-    def color_number_split(self, content):
+    def color_number_split(self, content, column_width):
         # line numbers to help find changes in source code
         line_num1 = 1
         line_num2 = 1
@@ -61,13 +61,30 @@ class CodeChecker:
 
             # add empty lines to line up the output, this may still be uneven if lines are too long
             if pline1 > pline2:
-                if i < len(content) and content[i+1][0] != '?' and content[i+1][0] != '+':
-                    content2 = content2 + '\n'
+                # deletion followed by common line
+                if i < len(content)-1 and content[i+1][0] != '?' and content[i+1][0] != '+':
+                    # adjust for lines being split into multiple lines by Pretty Table
+                    for j in range(0, len(line), column_width):
+                        content2 = content2 + '\n'
                     pline2 += 1
+                # deletion followed by addition
                 else:
-                    pline2 == 1
+                    # see if deletion and addition are going to print different amounts of lines
+                    column_diff = int((len(content[i])+len(str(line_num1))+len(": "))/column_width)\
+                                  - int((len(content[i+1])+len(str(line_num2))+len(": "))/column_width)
+                    # deletion is longer than addition
+                    if column_diff > 0:
+                        for k in range(0, column_diff):
+                            content[i+1] = content[i+1] + '\n'
+                    # addition is longer than deletion
+                    elif column_diff < 0:
+                        print("here")
+                        for m in range(column_diff, 0, 1):
+                            content1 = content1 + '\n'
+            # additions
             elif pline1 < pline2:
-                content1 = content1 + '\n'
+                for n in range(0, len(line), column_width):
+                    content1 = content1 + '\n'
                 pline1 += 1
 
         return content1, content2
@@ -91,7 +108,9 @@ class CodeChecker:
             # get differences
             diffs = list(difflib.ndiff(content1, content2))
 
-            new_content1, new_content2 = self.color_number_split(diffs)
+            # column_width used for PrettTable, but also to ensure code lines up correctly (feel free to change)
+            column_width = 80
+            new_content1, new_content2 = self.color_number_split(diffs, column_width)
 
             # print they are identical, else print code with differences
             if self.identical:
@@ -102,7 +121,7 @@ class CodeChecker:
                 table.align['\033[97m{}\033[0m'.format(f'Path 1: {self.path1}')] = "l"
                 table.align['\033[97m{}\033[0m'.format(f'Path 2: {self.path2}')] = "l"
                 table.add_row([new_content1, new_content2])
-                table.max_width = 80
+                table.max_width = column_width
 
                 self.result = table
 

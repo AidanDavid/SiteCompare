@@ -1,5 +1,5 @@
 # SiteCompare
-Site comparing application for D-SOLMEDIA
+Site comparing application for D-SOL Media
 Code developed in Python (v.3.10)
 
 Before running the application, you may need to download Wget to your computer.
@@ -8,8 +8,10 @@ Before running the application, you may need to download Wget to your computer.
  - In the "runcmd" function of 'main.py', replace the path to wget.exe with your own.
 
 Python libraries you may have to install include:
+- requests
 - prettytable
-- difflib
+You can use requirements.txt to do this. Paste the following in your console:
+pip install -r requirements.txt
 
 This program was developed to help web developers compare websites in two distinct states.
 It allows users to download websites, compare directories, files and test links.
@@ -33,6 +35,7 @@ CodeChecker (class)
 - will highlight additions from the second file in green
 - will highlight deletions from the first file in red
 - allows for finding links, before testing (LinkChecker)
+  - may run into formatting issues when comparing files with a lot of lines, and or very long lines
 
 LinkChecker (class)
 - makes a url request and returns the status/code
@@ -41,6 +44,11 @@ LinkChecker (class)
 
 General How-to
 - Hopefully you find the program straight-forward throughout, but some below details maybe unclear:
+
+- when asked to provide a URL, paste something such as: https://website.com/
+- when asked to provide a path, paste something such as: C:\Users\username\Desktop\website\CodeFiles\codefile.html
+  - after a file comparison, subsequent code and link check paths only need to be local to the website files, such as: CodeFiles\codefile.html
+  - (this would be found in the leftmost column of the file comparing table)
 
 - performing a Wget takes time based on website size (could be minutes to hours per site), if you already have the files downloaded, you can skip this
 
