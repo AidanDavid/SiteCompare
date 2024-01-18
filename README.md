@@ -14,6 +14,7 @@ Before running the application, you may need to download Wget to your computer.
    https://www.scrapingbee.com/blog/python-wget/ may be useful for details or assistance.
 
 Python libraries you may have to install include:
+- flask
 - requests
 - prettytable
 You can use requirements.txt to do this. Paste the following in your console:

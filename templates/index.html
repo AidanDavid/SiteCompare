@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Compare</title>
+    <style>
+        body {
+          background-color: black;
+          color: darkgrey;
+        }
+    </style>
+</head>
+<body>
+    <h1>Code Compare</h1>
+    <h2>Select an option to perform:</h2>
+    <form action="/navigate" method="post">
+
+        <label> Download Web Files: </label> <br>
+        <input type="radio" name="page" value="wget"> http/https <br>
+        <input type="radio" name="page" value="wget"> FTP <br>
+        <br>
+        <label> Compare Files: </label> <br>
+        <input type="radio" name="page" value="file_comp"> Locally <br>
+        <input type="radio" name="page" value="file_comp"> FTP <br>
+        <br>
+        <label> Compare Code: </label> <br>
+        <input type="radio" name="page" value="code_comp"> Locally <br>
+        <input type="radio" name="page" value="code_comp"> FTP <br>
+        <br>
+        <label> Test Links: </label> <br>
+        <input type="radio" name="page" value="link_check"> URL <br>
+        <input type="radio" name="page" value="link_check_file"> Local File <br>
+        <input type="radio" name="page" value="link_check_file"> FTP File <br>
+        <br>
+        <button type="submit">Go!</button>
+    </form>
+</body>
+</html>

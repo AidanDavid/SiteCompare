@@ -32,12 +32,12 @@ class MainClass:
             )
             if verbose:
                 print(process.stdout.strip(), process.stderr)
-            print("Wget complete!")
+            return "Wget complete!"
         except subprocess.CalledProcessError as e:
-            print(f"Command triggered an error, exit code: {e.returncode}")
-            # errors are sometimes given, despite getting valid download from Wget
             if e.returncode == 8:
-                print("Wget completed, but got an error response from the server!")
+                return f"Wget completed, but got an error response ({e.returncode}) from the server! " \
+                       f"Check the path for success."
+            return f"Command triggered an error, exit code: {e.returncode}. Make sure URL is valid!"
 
     # make use of FileChecker class
     def file_comp(self, path1, path2, cc=False, lc=False):
@@ -49,7 +49,7 @@ class MainClass:
 
         fc = FileChecker(prod_site, dev_site, code_check=cc, link_check=lc)
         fc.make_table()
-        print(fc.get_file_table())
+        return fc.get_file_table()
 
     # make use of CodeChecker class
     def code_comp(self, path1, path2):
@@ -61,14 +61,12 @@ class MainClass:
 
         cc = CodeChecker(file1, file2)
         cc.compare()
-        print(cc.get_result())
+        return cc.get_result()
 
     # make use of CodeChecker class' link checking
     def links_check(self, path):
-        file = path
-
-        cc = CodeChecker(file)
-        cc.check_links_print()
+        cc = CodeChecker(path)
+        return cc.check_links_print()
 
     # checks a full path, if make == True: path is created, otherwise: must be validated
     def get_check_path(self, make=False):
@@ -95,6 +93,7 @@ class MainClass:
         # returns path without backslashes and validated
         return safe_path
 
+
     # checks local path validity based on its super
     def get_check_sub_path(self, super_path):
         # tracks success of user inputs
@@ -107,6 +106,25 @@ class MainClass:
             working = os.path.exists(super_path + '/' + safe_path)
             if not working:
                 print("Invalid path")
+        return safe_path
+
+    # checks a full path, if make == True: path is created, otherwise: must be validated
+    def check_path(self, path, make=False):
+        # download location should be made if not found
+        if make:
+            # backslashes may cause errors
+            safe_path = path.replace("\\", "/")
+            # if not found, make it
+            if not os.path.exists(safe_path):
+                os.makedirs(safe_path)
+        # user input must be an existing path
+        else:
+            # tracks success of user inputs
+            working = False
+            safe_path = ""
+            if not os.path.exists(safe_path):
+                print("Invalid path")
+        # returns path without backslashes and validated
         return safe_path
 
     # Wget adds a file of domain name, this allows for path to add that
@@ -144,7 +162,7 @@ def main():
                 url = input("Enter url of site to download: ")
                 print("Enter the destination for the downloaded files below.")
                 path = m.get_check_path(make=True)
-                m.runcmd([f"--directory-prefix={path}", f"{url}"], verbose=True)
+                print(m.runcmd([f"--directory-prefix={path}", f"{url}"], verbose=True))
 
             # user wants to perform a file comparison
             elif answer == 'f':
@@ -157,7 +175,7 @@ def main():
                     url = input("Enter url of site to download: ")
                     print("Enter the destination for the downloaded files below.")
                     path1 = m.get_check_path(make=True)
-                    m.runcmd([f"--directory-prefix={path1}", f"{url}"], verbose=True)
+                    print(m.runcmd([f"--directory-prefix={path1}", f"{url}"], verbose=True))
                     # add domain name to path (like Wget)
                     path1 = path1 + '/' + m.get_domain_name(url)
 
@@ -182,7 +200,7 @@ def main():
                     url = input("Enter url of the first site to download: ")
                     print("Enter the destination for the downloaded files below.")
                     path1 = m.get_check_path(make=True)
-                    m.runcmd([f"--directory-prefix={path1}", f"{url}"], verbose=True)
+                    print(m.runcmd([f"--directory-prefix={path1}", f"{url}"], verbose=True))
                     # add domain name to path (like Wget)
                     path1 = path1 + '/' + m.get_domain_name(url)
 
@@ -190,7 +208,7 @@ def main():
                     url = input("Enter url of the second site to download: ")
                     print("Enter the destination for the downloaded files below.")
                     path2 = m.get_check_path(make=True)
-                    m.runcmd([f"--directory-prefix={path2}", f"{url}"], verbose=True)
+                    print(m.runcmd([f"--directory-prefix={path2}", f"{url}"], verbose=True))
                     # add domain name to path (like Wget)
                     path2 = path2 + '/' + m.get_domain_name(url)
 
@@ -216,11 +234,11 @@ def main():
                 # determine if user wants to code compare or link check the files as well (added to table)
                 reply = input("Code check (c) or link check (l) (else: neither), performed on files: ")
                 if reply == 'c':
-                    m.file_comp(path1, path2, cc=True)
+                    print(m.file_comp(path1, path2, cc=True))
                 elif reply == 'l':
-                    m.file_comp(path1, path2, lc=True)
+                    print(m.file_comp(path1, path2, lc=True))
                 else:
-                    m.file_comp(path1, path2)
+                    print(m.file_comp(path1, path2))
                 ans = 'x'
 
                 # post table creation: do users want to perform anything based on the table contents
@@ -243,7 +261,7 @@ def main():
                                 test_path = m.get_check_sub_path(path1)
                                 # check that the file is in both paths
                                 if os.path.exists(path2 + '/' + test_path):
-                                    m.code_comp(path1 + '/' + test_path, path2 + '/' + test_path)
+                                    print(m.code_comp(path1 + '/' + test_path, path2 + '/' + test_path))
                                     break
                                 else:
                                     print("File is not found in BOTH, please pick another filename or category.")
@@ -258,19 +276,19 @@ def main():
                                     # another production file
                                     if inp2 == 'p':
                                         test_path2 = m.get_check_sub_path(path1)
-                                        m.code_comp(path1 + '/' + test_path, path1 + '/' + test_path2)
+                                        print(m.code_comp(path1 + '/' + test_path, path1 + '/' + test_path2))
                                         break
 
                                     # another development file
                                     elif inp2 == 'd':
                                         test_path2 = m.get_check_sub_path(path2)
-                                        m.code_comp(path1 + '/' + test_path, path2 + '/' + test_path2)
+                                        print(m.code_comp(path1 + '/' + test_path, path2 + '/' + test_path2))
                                         break
 
                                     # elsewhere locally, needs a full path
                                     elif inp2 == 'e':
                                         e_path = m.get_check_path()
-                                        m.code_comp(path1 + '/' + test_path, e_path)
+                                        print(m.code_comp(path1 + '/' + test_path, e_path))
                                         break
 
                                     # return
@@ -290,19 +308,19 @@ def main():
                                     # another production file
                                     if inp2 == 'p':
                                         test_path2 = m.get_check_sub_path(path1)
-                                        m.code_comp(path2 + '/' + test_path, path1 + '/' + test_path2)
+                                        print(m.code_comp(path2 + '/' + test_path, path1 + '/' + test_path2))
                                         break
 
                                     # another development file
                                     elif inp2 == 'd':
                                         test_path2 = m.get_check_sub_path(path2)
-                                        m.code_comp(path2 + '/' + test_path, path2 + '/' + test_path2)
+                                        print(m.code_comp(path2 + '/' + test_path, path2 + '/' + test_path2))
                                         break
 
                                     # elsewhere locally, needs full path
                                     elif inp2 == 'e':
                                         e_path = m.get_check_path()
-                                        m.code_comp(path2 + '/' + test_path, e_path)
+                                        print(m.code_comp(path2 + '/' + test_path, e_path))
                                         break
 
                                     # return
@@ -326,13 +344,13 @@ def main():
                             # link check on a production file
                             if inp == 'p':
                                 test_path = m.get_check_sub_path(path1)
-                                m.links_check(path1 + '/' + test_path)
+                                print(m.links_check(path1 + '/' + test_path))
                                 break
 
                             # link check on a development file
                             elif inp == 'd':
                                 test_path = m.get_check_sub_path(path2)
-                                m.links_check(path2 + '/' + test_path)
+                                print(m.links_check(path2 + '/' + test_path))
                                 break
 
                             # return
@@ -354,7 +372,7 @@ def main():
                 path1 = m.get_check_path()
                 # get/check second filepath
                 path2 = m.get_check_path()
-                m.code_comp(path1, path2)
+                print(m.code_comp(path1, path2))
 
             # user wants to perform a link test
             elif answer == 'l':
@@ -372,7 +390,7 @@ def main():
                     # user wants to test all the links in a file
                     elif reply == 'f':
                         path = m.get_check_path()
-                        m.links_check(path)
+                        print(m.links_check(path))
                         break
 
             # user input was invalid

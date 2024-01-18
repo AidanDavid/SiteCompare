@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Check</title>
+    <style>
+        body {
+          background-color: black;
+          color: darkgrey;
+        }
+    </style>
+</head>
+<body>
+    <h1>Link Check</h1>
+
+    <form action="/link_check_file" method="post">
+        <label for="p">Path:</label>
+        <input type="text" id= "p" name="path" required>
+
+        <button type="submit">Run Link Check</button>
+    </form>
+    <br>
+    <pre>{{ result | safe}}</pre>
+</body>
+</html>

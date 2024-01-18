@@ -27,6 +27,10 @@ class CodeChecker:
     def get_result(self):
         return self.result
 
+    # splits a string into strings of a max size
+    def split_string(self, input_string, chunk_size):
+        return [input_string[i:i + chunk_size] for i in range(0, len(input_string), chunk_size)]
+
     # takes difflib content and organizes it into deletions, additions and mutual code (with colors and spacing)
     def color_number_split(self, content, column_width):
         # line numbers to help find changes in source code
@@ -45,6 +49,7 @@ class CodeChecker:
         content2 = ""
 
         for i, line in enumerate(content):
+            line_list = self.split_string(line, column_width)
             # lines not in either file
             if line[0] == '?':
                 pass
@@ -54,7 +59,16 @@ class CodeChecker:
                 # color line number only to avoid colour bleed (green)
                 green_num = '\033[92m{}\033[0m'.format(line_num2)
                 #                                                                              [1:] skips '+'
-                content2 = content2 + '\033[92m{}\033[0m'.format(f'{green_num}: {self.replace_tabs(line[1:])}')
+                content2 = content2 + '\033[92m{}\033[0m'.format(f'{green_num}: {self.replace_tabs(line_list[0][1:])}')
+                # lines over max_width
+                for item in line_list[1:]:
+                    content2 = content2 + '\n' + item
+                    pline2 += 1
+                # previous deletion longer than addition
+                if pline1 > pline2:
+                    while pline1-1 > pline2:
+                        content2 = content2 + '\n'
+                        pline2 += 1
                 # increase counters
                 line_num2 += 1
                 pline2 += 1
@@ -64,7 +78,10 @@ class CodeChecker:
                 # color line number only to avoid colour bleed (red)
                 red_num = '\033[91m{}\033[0m'.format(line_num1)
                 #                                                                              [1:] skips '-'
-                content1 = content1 + '\033[91m{}\033[0m'.format(f'{red_num}: {self.replace_tabs(line[1:])}')
+                content1 = content1 + '\033[91m{}\033[0m'.format(f'{red_num}: {self.replace_tabs(line_list[0][1:])}')
+                for item in line_list[1:]:
+                    content1 = content1 + '\n' + item
+                    pline1 += 1
                 # increase counters
                 line_num1 += 1
                 pline1 += 1
@@ -72,9 +89,12 @@ class CodeChecker:
             else:
                 # color line number only to avoid colour bleed (white)
                 white_num = '\033[97m{}\033[0m'.format(line_num1)
-                content1 = content1 + f'{white_num}: {self.replace_tabs(line)}'
+                content1 = content1 + f'{white_num}: {self.replace_tabs(line_list[0])}'
                 white_num = '\033[97m{}\033[0m'.format(line_num2)
-                content2 = content2 + f'{white_num}: {self.replace_tabs(line)}'
+                content2 = content2 + f'{white_num}: {self.replace_tabs(line_list[0])}'
+                for item in line_list[1:]:
+                    content1 = content1 + '\n' + item
+                    content2 = content2 + '\n' + item
                 # increase counters
                 line_num1 += 1
                 line_num2 += 1
@@ -83,29 +103,14 @@ class CodeChecker:
             if pline1 > pline2:
                 # deletion followed by common line
                 if i < len(content) - 1 and content[i + 1][0] != '?' and content[i + 1][0] != '+':
-                    # adjust for lines being split into multiple lines by Pretty Table
-                    for j in range(0, len(line), column_width):
+                    while pline1 > pline2:
                         content2 = content2 + '\n'
-                    pline2 += 1
-                # deletion followed by addition
-                else:
-                    # see if deletion and addition are going to print different amounts of lines
-                    column_diff = int((len(content[i]) + len(str(line_num1)) + len(": ")) / column_width) \
-                                  - int((len(content[i + 1]) + len(str(line_num2)) + len(": ")) / column_width)
-                    # deletion is longer than addition
-                    if column_diff > 0:
-                        for k in range(0, column_diff):
-                            content[i + 1] = content[i + 1] + '\n'
-                    # addition is longer than deletion
-                    elif column_diff < 0:
-                        for m in range(column_diff, 0, 1):
-                            content1 = content1 + '\n'
-            # additions
+                        pline2 += 1
+            # additions make more printed lines
             elif pline1 < pline2:
-                # adjust for lines being split into multiple lines by Pretty Table
-                for n in range(0, len(line), column_width):
+                while pline1 < pline2:
                     content1 = content1 + '\n'
-                pline1 += 1
+                    pline1 += 1
 
         # 2 full code sets colored and organized
         return content1, content2
@@ -114,11 +119,13 @@ class CodeChecker:
 
         # make sure path points to a file
         if not os.path.isfile(self.path1):
-            print("First path does not point to a file!")
+            self.result = "First path does not point to a file!"
             if not os.path.isfile(self.path2):
-                print("Second path does not point to a file either!")
+                self.result = self.result + "\nSecond path does not point to a file either!"
+            return self.result
         elif not os.path.isfile(self.path2):
-            print("Second path does not point to a file!")
+            self.result = "Second path does not point to a file!"
+            return self.result
         else:
             # read the files
             with open(self.path1, 'r', encoding='utf-8') as f:
@@ -129,8 +136,8 @@ class CodeChecker:
             # get differences
             diffs = list(difflib.ndiff(content1, content2))
 
-            # column_width used for PrettTable, but also to ensure code lines up correctly (feel free to change)
-            column_width = 80
+            # column_width used to ensure code lines up correctly (feel free to change)
+            column_width = 100
             new_content1, new_content2 = self.color_number_split(diffs, column_width)
 
             # print they are identical, else print code with differences
@@ -142,7 +149,6 @@ class CodeChecker:
                 table.align['\033[97m{}\033[0m'.format(f'Path 1: {self.path1}')] = "l"
                 table.align['\033[97m{}\033[0m'.format(f'Path 2: {self.path2}')] = "l"
                 table.add_row([new_content1, new_content2])
-                table.max_width = column_width
 
                 self.result = table
 
@@ -150,7 +156,7 @@ class CodeChecker:
     def check_links_print(self):
         # check if file
         if not os.path.isfile(self.path1):
-            print("Path does not point to a file!")
+            return "Path does not point to a file!"
         # read the file
         else:
             with open(self.path1, 'r', encoding='utf-8') as f:
@@ -160,7 +166,7 @@ class CodeChecker:
             lc = LinkChecker()
 
             # to see when and if links found
-            link_found = False
+            links_list = []
             line_num = 1
             for line in content:
                 # regex to find URLs
@@ -169,22 +175,22 @@ class CodeChecker:
 
                 # use link check on any links
                 if matches:
-                    link_found = True
                     for result in matches:
-                        print(f"URL found on line {line_num}: {result}")
+                        links_list.append(f"URL found on line {line_num}: {result}")
                         lc.link_check(result)
                         status = lc.get_status()
-                        print(f"The URL above is {status}")
+                        links_list.append(f"The URL above is {status}")
                 line_num += 1
 
-            if not link_found:
-                print("No links found!")
+            if len(links_list) < 1:
+                return "No links found!"
+            return links_list
 
     # returns number for failed links found in a file
     def check_links(self):
         # check if file
         if not os.path.isfile(self.path1):
-            print("Path does not point to a file!")
+            return "Path does not point to a file!"
         # read the file
         else:
             with open(self.path1, 'r', encoding='utf-8') as f:
@@ -203,7 +209,6 @@ class CodeChecker:
                 # use link check on any links
                 if matches:
                     for result in matches:
-                        print(f'link found: {result}')
                         lc.link_check(result)
                         if lc.get_code() >= 400:
                             links_failed += 1
