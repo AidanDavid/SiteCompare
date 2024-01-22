@@ -3,11 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Comparison</title>
+    <title>File Comparison (local)</title>
     <style>
         body {
-          background-color: black;
-          color: darkgrey;
+            background-color: black;
+            color: darkgrey;
+        }
+        pre {
+            background-color: black;
+            color: darkgrey;
         }
     </style>
 </head>
@@ -30,6 +34,8 @@
         <button type="submit">Run File Comparison</button>
     </form>
     <br>
-    <pre>{{ result | safe}}</pre>
+    <div class="no-wrap" style="background-color: black; color: darkgrey; padding: 10px; margin-top: 20px;">
+        {{ result | safe }}
+    </div>
 </body>
 </html>

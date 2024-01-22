@@ -21,10 +21,31 @@
             padding: 10px;
             border: 1px solid darkgrey;
         }
+        form {
+            display: inline-block;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
-    <h2>File Comparison Result</h2>
+    <br>
+    <form action="/code_comp" method="post">
+        <label for="local">Code Compare (paste local path):</label>
+        <input type="text" id="local" name="local" required>
+        <input type="hidden" name="path1" value="{{ p1 }}">
+        <input type="hidden" name="path2" value="{{ p2 }}">
+    </form>
+    <form action="/link_check_file" method="post">
+        <label for="local_p">PROD. Link Test (paste local path):</label>
+        <input type="text" id="local_p" name="local" required>
+        <input type="hidden" name="path" value="{{ p1 }}">
+    </form>
+    <form action="/link_check_file" method="post">
+        <label for="local_d">DEV. Link Test (paste local path):</label>
+        <input type="text" id="local_d" name="local" required>
+        <input type="hidden" name="path" value="{{ p2 }}">
+    </form>
+    <br>
     <pre>{{ result | safe}}</pre>
 </body>
 </html>

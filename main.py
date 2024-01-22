@@ -119,11 +119,10 @@ class MainClass:
                 os.makedirs(safe_path)
         # user input must be an existing path
         else:
-            # tracks success of user inputs
-            working = False
-            safe_path = ""
+            # backslashes may cause errors
+            safe_path = path.replace("\\", "/")
             if not os.path.exists(safe_path):
-                print("Invalid path")
+                return "Invalid path"
         # returns path without backslashes and validated
         return safe_path
 
