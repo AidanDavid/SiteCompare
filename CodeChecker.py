@@ -13,9 +13,11 @@ from prettytable import PrettyTable
 
 
 class CodeChecker:
-    def __init__(self, path1, path2=""):
+    def __init__(self, path1="", path2="", str1="", str2=""):
         self.path1 = path1
         self.path2 = path2
+        self.str1 = str1
+        self.str2 = str2
         self.identical = True
         self.result = "Call compare() first"
 
@@ -115,7 +117,29 @@ class CodeChecker:
         # 2 full code sets colored and organized
         return content1, content2
 
-    def compare(self):
+    # strings to be compared line by line and put in table
+    def compare_strings(self):
+        # get differences
+        diffs = list(difflib.ndiff(self.str1, self.str2))
+
+        # column_width used to ensure code lines up correctly (feel free to change)
+        column_width = 100
+        new_content1, new_content2 = self.color_number_split(diffs, column_width)
+
+        # print they are identical, else print code with differences
+        if self.identical:
+            self.result = "Files are identical!"
+        else:
+            table = PrettyTable(['\033[97m{}\033[0m'.format(f'Code 1'),
+                                 '\033[97m{}\033[0m'.format(f'Code 2')])
+            table.align['\033[97m{}\033[0m'.format(f'Code 1')] = "l"
+            table.align['\033[97m{}\033[0m'.format(f'Code 2')] = "l"
+            table.add_row([new_content1, new_content2])
+
+            self.result = table
+
+    # takes local path, makes strings to be compared line by line and put in table
+    def compare_files(self):
 
         # make sure path points to a file
         if not os.path.isfile(self.path1):
@@ -152,8 +176,8 @@ class CodeChecker:
 
                 self.result = table
 
-    # no return, only print links found in a file
-    def check_links_print(self):
+    # gives printable responses (local file)
+    def check_links_print_file(self):
         # check if file
         if not os.path.isfile(self.path1):
             return "Path does not point to a file!"
@@ -185,6 +209,32 @@ class CodeChecker:
             if len(links_list) < 1:
                 return "No links found!"
             return links_list
+
+    # gives printable responses (local file)
+    def check_links_print_string(self):
+        # use to test any links found in html file
+        lc = LinkChecker()
+
+        # to see when and if links found
+        links_list = []
+        line_num = 1
+        for line in self.str1:
+            # regex to find URLs
+            regex = r'http[s]?://[^\s"<>\')]+'
+            matches = re.findall(regex, line)
+
+            # use link check on any links
+            if matches:
+                for result in matches:
+                    links_list.append(f"URL found on line {line_num}: {result}")
+                    lc.link_check(result)
+                    status = lc.get_status()
+                    links_list.append(f"The URL above is {status}")
+            line_num += 1
+
+        if len(links_list) < 1:
+            return "No links found!"
+        return links_list
 
     # returns number for failed links found in a file
     def check_links(self):

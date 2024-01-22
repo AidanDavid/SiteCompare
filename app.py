@@ -1,8 +1,13 @@
+"""
+File: app.py
+Author: Aidan David
+Date: 2024-01-10
+Description: Web interface for Site Compare. Made to facilitate web development with FileChecker, CodeChecker,
+and LinkChecker classes. Allows users to web crawl, access ftp, file compare, code compare, and check links.
+"""
 from flask import Flask, render_template, request
-from ftplib import FTP
 import re
 from main import MainClass
-from LinkChecker import LinkChecker
 
 app = Flask(__name__)
 
@@ -53,7 +58,6 @@ def wget():
     return render_template('wget.html', result=response)
 
 
-# DOES NOT WORK (FILLER)
 # ftp download page
 @app.route('/ftp', methods=['POST'])
 def ftp():
@@ -61,14 +65,16 @@ def ftp():
     username = request.form['user']
     password = request.form['pass']
     path = request.form['path']
-    try:
-        with FTP(hostname) as ftp_instance:
-            ftp_instance.login(username, password)
-            ftp_instance.cwd(path)
-            res = ftp_instance.retrlines('LIST')
-    except Exception as e:
-        # Print or log the error message
-        res = f"FTP Access Error: {e}"
+    dest = request.form['dest']
+
+    status = m.test_ftp(hostname, username, password, path)
+    if type(status) != int:
+        m.download_ftp(status, path, dest)
+        res = "FTP download successful!"
+    elif status == 0:
+        res = "Path does not exist!"
+    else:
+        res = "Access to FTP failed!"
     return render_template('ftp.html', result=res)
 
 
@@ -97,35 +103,6 @@ def file_comp():
     return render_template('fc_result.html', result=table_html, p1=path1, p2=path2)
 
 
-# DOES NOT WORK (FILLER)
-# ftp file comp page
-@app.route('/file_comp_ftp', methods=['POST'])
-def file_comp_ftp():
-    hostname1 = request.form['host1']
-    username1 = request.form['user1']
-    password1 = request.form['pass1']
-    path1 = request.form['path1']
-    hostname2 = request.form['host2']
-    username2 = request.form['user2']
-    password2 = request.form['pass2']
-    path2 = request.form['path2']
-    try:
-        with FTP(hostname1) as ftp:
-            ftp.login(username1, password1)
-            ftp.cwd(path1)
-            res = ftp.retrlines('LIST')
-        with FTP(hostname2) as ftp:
-            ftp.login(username2, password2)
-            ftp.cwd(path2)
-            res = ftp.retrlines('LIST')
-    except Exception as e:
-        # Print or log the error message
-        res = f"FTP Access Error: {e}"
-
-    return render_template('file_comp_ftp.html', result=res)
-
-
-# DOES NOT WORK (FILLER)
 # code comparison page
 @app.route('/code_comp', methods=['POST'])
 def code_comp():
@@ -135,9 +112,9 @@ def code_comp():
     path2 = request.form['path2']
 
     if len(local) > 0:
-        res = m.code_comp(path1 + '/' + local, path2 + '/' + local)
+        res = m.code_comp_files(path1 + '/' + local, path2 + '/' + local)
     else:
-        res = m.code_comp(path1, path2)
+        res = m.code_comp_files(path1, path2)
 
     if type(res) != str:
         # get pretty table, make html
@@ -160,18 +137,33 @@ def code_comp_ftp():
     username2 = request.form['user2']
     password2 = request.form['pass2']
     path2 = request.form['path2']
-    try:
-        with FTP(hostname1) as ftp:
-            ftp.login(username1, password1)
-            ftp.cwd(path1)
-            res = ftp.retrlines('LIST')
-        with FTP(hostname2) as ftp:
-            ftp.login(username2, password2)
-            ftp.cwd(path2)
-            res = ftp.retrlines('LIST')
-    except Exception as e:
-        # Print or log the error message
-        res = f"FTP Access Error: {e}"
+
+    content1 = ''
+    content2 = ''
+
+    # try ftp 1
+    status = m.test_ftp(hostname1, username1, password1, path1)
+    if type(status) != int:
+        res = "FTP 1 successful!"
+        content1 = m.read_file_from_ftp(status, path1)
+    elif status == 0:
+        res = "Path 1 does not exist!"
+    else:
+        res = "Access to FTP 1 failed!"
+
+    # try ftp2
+    status = m.test_ftp(hostname2, username2, password2, path2)
+    if type(status) != int:
+        res = res + " FTP 2 successful!"
+        content2 = m.read_file_from_ftp(status, path2)
+    elif status == 0:
+        res = res + " Path 2 does not exist!"
+    else:
+        res = res + " Access to FTP 2 failed!"
+
+    # code comp if both contents were found
+    if len(content1) > 1 and len(content2) > 1:
+        res = m.code_comp_strings(content1, content2)
 
     return render_template('code_comp_ftp.html', result=res)
 
@@ -180,9 +172,8 @@ def code_comp_ftp():
 @app.route('/link_check', methods=['POST'])
 def link_check():
     url = request.form['url']
-    lc = LinkChecker()
-    lc.link_check(url)
-    status = apply_html_colors(lc.get_status())
+    status = m.link_check(url)
+    status = apply_html_colors(status)
     status = f"The url \'{url}\' is " + status
     return render_template('link_check.html', result=status)
 
@@ -194,9 +185,9 @@ def link_check_file():
 
     path = request.form['path']
     if len(local) > 0:
-        out_list = m.links_check(path + '/' + local)
+        out_list = m.links_check_file(path + '/' + local)
     else:
-        out_list = m.links_check(path)
+        out_list = m.links_check_file(path)
 
     if type(out_list) == str:
         return render_template('link_check_file.html', result=out_list)
@@ -207,7 +198,6 @@ def link_check_file():
     return render_template('link_check_file.html', result=res)
 
 
-# DOES NOT WORK (FILLER)
 # ftp link check page
 @app.route('/link_check_ftp', methods=['POST'])
 def link_check_ftp():
@@ -215,14 +205,22 @@ def link_check_ftp():
     username = request.form['user']
     password = request.form['pass']
     path = request.form['path']
-    try:
-        with FTP(hostname) as ftp_instance:
-            ftp_instance.login(username, password)
-            ftp_instance.cwd(path)
-            res = ftp_instance.retrlines('LIST')
-    except Exception as e:
-        # Print or log the error message
-        res = f"FTP Access Error: {e}"
+
+    content = ''
+
+    status = m.test_ftp(hostname, username, password, path)
+    if type(status) != int:
+        res = "FTP successful!"
+        content = m.read_file_from_ftp(status, path)
+    elif status == 0:
+        res = "Path does not exist!"
+    else:
+        res = "Access to FTP failed!"
+
+    # link check if content found
+    if len(content) > 1:
+        res = m.links_check_string(content)
+
     return render_template('link_check_ftp.html', result=res)
 
 
@@ -237,8 +235,6 @@ def navigate():
         return render_template('ftp.html')
     elif selected_page == 'file_comp':
         return render_template('file_comp.html')
-    elif selected_page == 'file_comp_ftp':
-        return render_template('file_comp_ftp.html')
     elif selected_page == 'code_comp':
         return render_template('code_comp.html')
     elif selected_page == 'code_comp_ftp':

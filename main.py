@@ -2,15 +2,18 @@
 File: main.py
 Author: Aidan David
 Date: 2024-01-10
-Description: Main event loop. Made to facilitate web development with FileChecker, CodeChecker, and LinkChecker classes.
-Allows users to web crawl, file compare, code compare, and check links.
+Description: Makes use of other program classes to add functionality used by app.py for the web interface.
 """
 import os
 import subprocess
+from ftplib import FTP
+from io import BytesIO
+from io import StringIO
 from urllib.parse import urlsplit
 from FileChecker import FileChecker
 from CodeChecker import CodeChecker
 from LinkChecker import LinkChecker
+from FTPDownloader import FTPDownloader
 
 
 class MainClass:
@@ -51,22 +54,37 @@ class MainClass:
         fc.make_table()
         return fc.get_file_table()
 
-    # make use of CodeChecker class
-    def code_comp(self, path1, path2):
+    # make use of CodeChecker class (local file)
+    def code_comp_files(self, file1, file2):
         print("Loading...")
-        # code 1 path
-        file1 = path1
-        # code 2 path
-        file2 = path2
 
-        cc = CodeChecker(file1, file2)
-        cc.compare()
+        cc = CodeChecker(path1=file1, path2=file2)
+        cc.compare_files()
         return cc.get_result()
 
-    # make use of CodeChecker class' link checking
-    def links_check(self, path):
-        cc = CodeChecker(path)
-        return cc.check_links_print()
+    # make use of CodeChecker class (str)
+    def code_comp_strings(self, content1, content2):
+        print("Loading...")
+
+        cc = CodeChecker(str1=content1, str2=content2)
+        cc.compare_strings()
+        return cc.get_result()
+
+    # make use of CodeChecker class' link checking (local file)
+    def links_check_file(self, path):
+        cc = CodeChecker(path1=path)
+        return cc.check_links_print_file()
+
+    # make use of CodeChecker class' link checking (str)
+    def links_check_string(self, content):
+        cc = CodeChecker(str1=content)
+        return cc.check_links_print_string()
+
+    # uses LinkChecker to test a URL
+    def link_check(self, url):
+        lc = LinkChecker()
+        lc.link_check(url)
+        return lc.get_status()
 
     # checks a full path, if make == True: path is created, otherwise: must be validated
     def get_check_path(self, make=False):
@@ -137,270 +155,37 @@ class MainClass:
         return domain_name
 
 
-def main():
-    m = MainClass()
-
-    try:
-        # tracks main menu user inputs
-        answer = 'x'
-        while answer != 'q':
-            # print main menu
-            print("\n*\t*\t*\t*\t*\t*")
-            print("*\tSite Compare\t*")
-            print("*\t*\t*\t*\t*\t*\n")
-            # get user request
-            answer = input("What do you want to perform:\n"
-                           "(w) Wget\n"
-                           "(f) File Comparison\n"
-                           "(c) Code Comparison\n"
-                           "(l) Link check (HTML file)\n"
-                           "(q) Quit\n")
-
-            # user wants to perform a Wget
-            if answer == 'w':
-                url = input("Enter url of site to download: ")
-                print("Enter the destination for the downloaded files below.")
-                path = m.get_check_path(make=True)
-                print(m.runcmd([f"--directory-prefix={path}", f"{url}"], verbose=True))
-
-            # user wants to perform a file comparison
-            elif answer == 'f':
-                # determine if user wants to Wget the files to be compared
-                do_wget = input("Do you need to perform (1) or (2) Wget(s) before starting (else: no): ")
-
-                # user wants to perform 1 Wget
-                if do_wget == '1':
-                    # perform Wget for first file set
-                    url = input("Enter url of site to download: ")
-                    print("Enter the destination for the downloaded files below.")
-                    path1 = m.get_check_path(make=True)
-                    print(m.runcmd([f"--directory-prefix={path1}", f"{url}"], verbose=True))
-                    # add domain name to path (like Wget)
-                    path1 = path1 + '/' + m.get_domain_name(url)
-
-                    # get second file set locally
-                    print("Enter path to second file set below.")
-                    path2 = m.get_check_path()
-
-                    # determine which site is production or development for consistency when making the table
-                    which_prod = input("Is the first site production? yes (y), no (else): ")
-                    # first was production, stays the same
-                    if which_prod == 'y':
-                        pass
-                    # second was production, so swap
-                    else:
-                        temp = path1
-                        path1 = path2
-                        path2 = temp
-
-                # user wants to perform 2 Wgets
-                elif do_wget == '2':
-                    # perform Wget for first file set
-                    url = input("Enter url of the first site to download: ")
-                    print("Enter the destination for the downloaded files below.")
-                    path1 = m.get_check_path(make=True)
-                    print(m.runcmd([f"--directory-prefix={path1}", f"{url}"], verbose=True))
-                    # add domain name to path (like Wget)
-                    path1 = path1 + '/' + m.get_domain_name(url)
-
-                    # perform Wget for second file set
-                    url = input("Enter url of the second site to download: ")
-                    print("Enter the destination for the downloaded files below.")
-                    path2 = m.get_check_path(make=True)
-                    print(m.runcmd([f"--directory-prefix={path2}", f"{url}"], verbose=True))
-                    # add domain name to path (like Wget)
-                    path2 = path2 + '/' + m.get_domain_name(url)
-
-                    # determine which site is production or development for consistency when making the table
-                    which_prod = input("Is the first site production? yes (y), no (else): ")
-                    # first was production, stays the same
-                    if which_prod == 'y':
-                        pass
-                    # second was production, so swap
-                    else:
-                        temp = path1
-                        path1 = path2
-                        path2 = temp
-
+    def test_ftp(self, hostname, username, password, path, is_file=False):
+        try:
+            with FTP(hostname) as ftp_instance:
+                ftp_instance.login(username, password)
+                if not is_file:
+                    try:
+                        ftp_instance.cwd(path)
+                        return ftp_instance
+                    except Exception as e:
+                        # path failed
+                        return 0
                 else:
-                    # get/check first filepath (Production)
-                    print("Production site")
-                    path1 = m.get_check_path()
-                    # get/check second filepath (Development)
-                    print("Development site")
-                    path2 = m.get_check_path()
+                    try:
+                        dummy_file = BytesIO()
+                        # try to retrieve the file content
+                        ftp_instance.retrbinary('RETR ' + path, dummy_file.write)
+                        return ftp_instance
+                    except Exception as e:
+                        # path failed
+                        return 0
 
-                # determine if user wants to code compare or link check the files as well (added to table)
-                reply = input("Code check (c) or link check (l) (else: neither), performed on files: ")
-                if reply == 'c':
-                    print(m.file_comp(path1, path2, cc=True))
-                elif reply == 'l':
-                    print(m.file_comp(path1, path2, lc=True))
-                else:
-                    print(m.file_comp(path1, path2))
-                ans = 'x'
-
-                # post table creation: do users want to perform anything based on the table contents
-                while ans != 'q' and ans != 'r':
-                    ans = input("\n\nWhat do you want to perform based on the table generated:\n"
-                                "(c) Code Comparison\n"
-                                "(l) Link check (HTML file)\n"
-                                "(r) Return to Main Menu\n"
-                                "(q) Quit\n")
-
-                    # perform code compare based on files found by FileChecker
-                    if ans == 'c':
-                        print("\n^ Copy filename(s) with local path from above ^\n")
-                        inp = 'x'
-                        while inp != 'r':
-                            inp = input("Is file in BOTH (b), PROD. (p), or DEV. (d): ")
-
-                            # user wants to compare two files found in both sites
-                            if inp == 'b':
-                                test_path = m.get_check_sub_path(path1)
-                                # check that the file is in both paths
-                                if os.path.exists(path2 + '/' + test_path):
-                                    print(m.code_comp(path1 + '/' + test_path, path2 + '/' + test_path))
-                                    break
-                                else:
-                                    print("File is not found in BOTH, please pick another filename or category.")
-
-                            # user wants to compare a production file against another file
-                            elif inp == 'p':
-                                test_path = m.get_check_sub_path(path1)
-                                inp2 = 'x'
-                                while inp2 != 'r':
-                                    # user can compare a production file to file from table or elsewhere locally
-                                    inp2 = input("Is other file in PROD. (p), DEV. (d), or elsewhere (e): ")
-                                    # another production file
-                                    if inp2 == 'p':
-                                        test_path2 = m.get_check_sub_path(path1)
-                                        print(m.code_comp(path1 + '/' + test_path, path1 + '/' + test_path2))
-                                        break
-
-                                    # another development file
-                                    elif inp2 == 'd':
-                                        test_path2 = m.get_check_sub_path(path2)
-                                        print(m.code_comp(path1 + '/' + test_path, path2 + '/' + test_path2))
-                                        break
-
-                                    # elsewhere locally, needs a full path
-                                    elif inp2 == 'e':
-                                        e_path = m.get_check_path()
-                                        print(m.code_comp(path1 + '/' + test_path, e_path))
-                                        break
-
-                                    # return
-                                    elif inp2 == 'r':
-                                        break
-                                    # invalid input
-                                    else:
-                                        print("Please enter p, d, or e")
-
-                            # user wants to compare a development file against another file
-                            elif inp == 'd':
-                                test_path = m.get_check_sub_path(path2)
-                                inp2 = 'x'
-                                while inp2 != 'r':
-                                    # user can compare a development file to file from table or elsewhere locally
-                                    inp2 = input("Is other file in PROD. (p), DEV. (d), or elsewhere (e): ")
-                                    # another production file
-                                    if inp2 == 'p':
-                                        test_path2 = m.get_check_sub_path(path1)
-                                        print(m.code_comp(path2 + '/' + test_path, path1 + '/' + test_path2))
-                                        break
-
-                                    # another development file
-                                    elif inp2 == 'd':
-                                        test_path2 = m.get_check_sub_path(path2)
-                                        print(m.code_comp(path2 + '/' + test_path, path2 + '/' + test_path2))
-                                        break
-
-                                    # elsewhere locally, needs full path
-                                    elif inp2 == 'e':
-                                        e_path = m.get_check_path()
-                                        print(m.code_comp(path2 + '/' + test_path, e_path))
-                                        break
-
-                                    # return
-                                    elif inp2 == 'r':
-                                        break
-                                    # invalid input
-                                    else:
-                                        print("Please enter p, d, or e")
-                                break
-                            elif inp == 'r':
-                                break
-                            else:
-                                print("Please enter b, p, or d")
-
-                    # perform LinkChecker on a file found by FileChecker
-                    elif ans == 'l':
-                        print("\n^ Copy a filename with local path from above ^\n")
-                        inp = 'x'
-                        while inp != 'r':
-                            inp = input("PROD. (p), or DEV. (d): ")
-                            # link check on a production file
-                            if inp == 'p':
-                                test_path = m.get_check_sub_path(path1)
-                                print(m.links_check(path1 + '/' + test_path))
-                                break
-
-                            # link check on a development file
-                            elif inp == 'd':
-                                test_path = m.get_check_sub_path(path2)
-                                print(m.links_check(path2 + '/' + test_path))
-                                break
-
-                            # return
-                            elif inp == 'r':
-                                break
-                            # invalid input
-                            else:
-                                print("Please enter p or d")
-
-                    # quit application
-                    elif ans == 'q':
-                        answer = 'q'
-                    else:
-                        "Please enter c, l, r, or q"
-
-            # user wants to perform a code comparison
-            elif answer == 'c':
-                # get/check first filepath
-                path1 = m.get_check_path()
-                # get/check second filepath
-                path2 = m.get_check_path()
-                print(m.code_comp(path1, path2))
-
-            # user wants to perform a link test
-            elif answer == 'l':
-                reply = 'x'
-                while reply != 'r':
-                    reply = input("Check a single link (s) or links in a file (f): ")
-                    # user wants to test one link
-                    if reply == 's':
-                        url = input("Paste URL here: ")
-                        lc = LinkChecker()
-                        lc.link_check(url)
-                        status = lc.get_status()
-                        print(f"The URL above is {status}")
-                        break
-                    # user wants to test all the links in a file
-                    elif reply == 'f':
-                        path = m.get_check_path()
-                        print(m.links_check(path))
-                        break
-
-            # user input was invalid
-            else:
-                "Please enter w, f, c, l, or q"
-
-    # program was halted, not quit (q)
-    except KeyboardInterrupt:
-        print("\nProgram interrupted!")
+        except Exception as e:
+            # access failed
+            return -1
 
 
-# ensures one main instance
-if __name__ == "__main__":
-    main()
+    def download_ftp(self, ftp_instance, path, dest):
+        fd = FTPDownloader()
+        fd.download(ftp_instance, path, dest)
+
+    def read_file_from_ftp(self, ftp_instance, path):
+        contents = StringIO()
+        ftp_instance.retrlines(f"RETR {path}", contents.write)
+        return contents.getvalue()
