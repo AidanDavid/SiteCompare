@@ -1,12 +1,13 @@
 """
 File: app.py
 Author: Aidan David
-Date: 2024-01-10
+Date: 2024-01-23
 Description: Web interface for Site Compare. Made to facilitate web development with FileChecker, CodeChecker,
 and LinkChecker classes. Allows users to web crawl, access ftp, file compare, code compare, and check links.
 """
 from flask import Flask, render_template, request
 import re
+import os
 from main import MainClass
 
 app = Flask(__name__)
@@ -53,7 +54,10 @@ def index():
 def wget():
     url = request.form['url']
     path = request.form['path']
+    # ensure path is valid or made
     valid_path = m.check_path(path, make=True)
+
+    # get and display result
     response = m.runcmd(["--directory-prefix=" + valid_path, url], verbose=True)
     return render_template('wget.html', result=response)
 
@@ -67,12 +71,17 @@ def ftp():
     path = request.form['path']
     dest = request.form['dest']
 
+    # check ftp access status
     status = m.test_ftp(hostname, username, password, path)
+
+    # it worked
     if type(status) != int:
         m.download_ftp(status, path, dest)
         res = "FTP download successful!"
+    # got in but the path does not exist
     elif status == 0:
         res = "Path does not exist!"
+    # did not get into FTP server
     else:
         res = "Access to FTP failed!"
     return render_template('ftp.html', result=res)
@@ -86,12 +95,22 @@ def file_comp():
     cc = request.form.get('cc', False)
     lc = request.form.get('lc', False)
 
+    # check if the user provided valid paths
     if m.check_path(path1) == "Invalid path":
         if m.check_path(path2) == "Invalid path":
             return render_template('file_comp.html', result="Neither path exists!")
         return render_template('file_comp.html', result="Path 1 does not exist!")
     if m.check_path(path2) == "Invalid path":
         return render_template('file_comp.html', result="Path 2 does not exist!")
+
+    # check if the user provided directories
+    if not os.path.isdir(path1):
+        if not os.path.isdir(path2):
+            return render_template('file_comp.html', result="Neither path points to a directory!")
+        return render_template('file_comp.html', result="Path 1 does not point to a directory!")
+    if not os.path.isdir(path2):
+        return render_template('file_comp.html', result="Path 2 does not point to a directory!")
+
     # get pretty table, make html
     pretty_table = m.file_comp(path1, path2, cc=cc, lc=lc)
     table_html = pretty_table.get_html_string()
@@ -107,15 +126,16 @@ def file_comp():
 @app.route('/code_comp', methods=['POST'])
 def code_comp():
     local = request.form.get('local', '')
-
     path1 = request.form['path1']
     path2 = request.form['path2']
 
+    # is there a local path (from file comparison)
     if len(local) > 0:
         res = m.code_comp_files(path1 + '/' + local, path2 + '/' + local)
     else:
         res = m.code_comp_files(path1, path2)
 
+    # if successful (prettytable, nots str)
     if type(res) != str:
         # get pretty table, make html
         table_html = res.get_html_string()
@@ -143,27 +163,41 @@ def code_comp_ftp():
 
     # try ftp 1
     status = m.test_ftp(hostname1, username1, password1, path1)
+    # it worked
     if type(status) != int:
         res = "FTP 1 successful!"
         content1 = m.read_file_from_ftp(status, path1)
+    # got in but path does not exist
     elif status == 0:
         res = "Path 1 does not exist!"
+    # failed to access FTP server
     else:
         res = "Access to FTP 1 failed!"
 
     # try ftp2
     status = m.test_ftp(hostname2, username2, password2, path2)
+    # it worked
     if type(status) != int:
         res = res + " FTP 2 successful!"
         content2 = m.read_file_from_ftp(status, path2)
+    # got in but path does not exist
     elif status == 0:
         res = res + " Path 2 does not exist!"
+    # failed to access FTP server
     else:
         res = res + " Access to FTP 2 failed!"
 
     # code comp if both contents were found
     if len(content1) > 1 and len(content2) > 1:
         res = m.code_comp_strings(content1, content2)
+
+    # if successful (prettytable, nots str)
+    if type(res) != str:
+        # get pretty table, make html
+        table_html = res.get_html_string()
+
+        # remove ANSI add HTML color
+        res = apply_html_colors(table_html)
 
     return render_template('code_comp_ftp.html', result=res)
 
@@ -173,6 +207,7 @@ def code_comp_ftp():
 def link_check():
     url = request.form['url']
     status = m.link_check(url)
+    # remove ANSI add HTML color
     status = apply_html_colors(status)
     status = f"The url \'{url}\' is " + status
     return render_template('link_check.html', result=status)
@@ -182,18 +217,21 @@ def link_check():
 @app.route('/link_check_file', methods=['POST'])
 def link_check_file():
     local = request.form.get('local', '')
-
     path = request.form['path']
+
+    # is there a local path (from file comparison)
     if len(local) > 0:
         out_list = m.links_check_file(path + '/' + local)
     else:
         out_list = m.links_check_file(path)
 
+    # failure
     if type(out_list) == str:
         return render_template('link_check_file.html', result=out_list)
     res = ""
     for item in out_list:
         res = res + item + "\n"
+    # remove ANSI add HTML color
     res = apply_html_colors(res)
     return render_template('link_check_file.html', result=res)
 
@@ -209,11 +247,14 @@ def link_check_ftp():
     content = ''
 
     status = m.test_ftp(hostname, username, password, path)
+    # got in
     if type(status) != int:
         res = "FTP successful!"
         content = m.read_file_from_ftp(status, path)
+    # got in but path does not exist
     elif status == 0:
         res = "Path does not exist!"
+    # failed to access FTP server
     else:
         res = "Access to FTP failed!"
 

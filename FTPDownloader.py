@@ -1,3 +1,4 @@
+# downloads FTP files to local
 import os
 
 
@@ -16,7 +17,7 @@ class FTPDownloader:
             ftp_instance.cwd(original_cwd)
             return True
         # change failed, not a directory
-        except:
+        except Exception as e:
             return False
 
     # make directory if doesnt exist
@@ -25,7 +26,7 @@ class FTPDownloader:
         while not os.path.exists(dir_item_name):
             try:
                 os.mkdir(dir_item_name)
-            except:
+            except Exception as e:
                 self.make_dir(dir_item_name)
 
     # download file from ftp

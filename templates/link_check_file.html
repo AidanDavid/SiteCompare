@@ -13,7 +13,14 @@
 </head>
 <body>
     <h1>Link Check</h1>
-
+    <button onclick="goBack()">Return</button>
+    <script>
+    function goBack() {
+      window.history.back();
+    }
+    </script>
+    <br>
+    <br>
     <form action="/link_check_file" method="post">
         <label for="p">Path:</label>
         <input type="text" id= "p" name="path" required>

@@ -21,7 +21,12 @@ You can use requirements.txt to do this. Paste the following in your console:
 pip install -r requirements.txt
 
 This program was developed to help web developers compare websites in two distinct states.
-It allows users to download websites, compare directories, files and test links.
+It allows users to download websites, download FTP files, compare directories, files and test links.
+
+app (class)
+- web interface for the below classes
+- makes use of main to perform functionality
+- makes use of html files in 'templates' for display
 
 main (class)
 - takes user inputs to be performed upon
@@ -31,6 +36,7 @@ main (class)
 - user can perform file comparison (FileChecker) on their directories (Wget or not)
 - user can perform code comparison (CodeChecker) on their files
 - user can perform link testing (LinkChecker) on files or urls
+- user can perform FTP downloads (FTPDownloader)
 
 FileChecker (class)
 - searches through directories/folders to find files and compare them
@@ -47,6 +53,9 @@ CodeChecker (class)
 LinkChecker (class)
 - makes a url request and returns the status/code
 
+FTPDownloader (class)
+- downloads files from FTP server, maintaining structure
+
 
 
 General How-to
@@ -59,12 +68,11 @@ General How-to
 
 - performing a Wget takes time based on website size (could be minutes to hours per site), if you already have the files downloaded, you can skip this
 
-- oftentimes, you can input 'r' to return a step if you entered the wrong option
-  - if asked to enter a path or url, this option is not available (enter a valid response to continue)
-
 - when performing file comparisons:
   - the addition of code comparison may add several minutes before the table is generated
   - the addition of link checking may add hours before the table is generated
   - when performing a subsequent code or link check, copy the whole local path found in the leftmost column
   - on line 156, there is a list of file endings that are looked for as code:
     - if certain code files are not being recognized, you may have to add the file ending to the list (ex. .cpp)
+
+- at current, FTP functionality has undergone limited testing

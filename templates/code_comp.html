@@ -25,7 +25,14 @@
 </head>
 <body>
     <h1>Code Comparison</h1>
-
+    <button onclick="goBack()">Return</button>
+    <script>
+    function goBack() {
+      window.history.back();
+    }
+    </script>
+    <br>
+    <br>
     <form action="/code_comp" method="post">
         <label for="p1">Path 1:</label>
         <input type="text" id="p1" name="path1" required>

@@ -13,7 +13,14 @@
 </head>
 <body>
     <h1>FTP</h1>
-
+    <button onclick="goBack()">Return</button>
+    <script>
+    function goBack() {
+      window.history.back();
+    }
+    </script>
+    <br>
+    <br>
     <form action="/ftp" method="post">
         <label for="host">Host:</label>
         <input type="text" id= "host" name="host" required>

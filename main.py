@@ -1,7 +1,7 @@
 """
 File: main.py
 Author: Aidan David
-Date: 2024-01-10
+Date: 2024-01-23
 Description: Makes use of other program classes to add functionality used by app.py for the web interface.
 """
 import os
@@ -179,7 +179,6 @@ class MainClass:
         except Exception as e:
             # access failed
             return -1
-
 
     def download_ftp(self, ftp_instance, path, dest):
         fd = FTPDownloader()

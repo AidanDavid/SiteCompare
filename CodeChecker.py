@@ -1,7 +1,7 @@
 """
 File: main.py
 Author: Aidan David
-Date: 2024-01-10
+Date: 2024-01-23
 Description: Compares code files to help determine where similar code has be altered.
 Makes use of LinkChecker class to find and test links in a file.
 """

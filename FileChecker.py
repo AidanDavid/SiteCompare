@@ -1,7 +1,7 @@
 """
 File: main.py
 Author: Aidan David
-Date: 2024-01-10
+Date: 2024-01-23
 Description: Compares directories/folders and files based on organization, size, and modification date.
 Can be further compared using CodeChecker (and LinkChecker)
 """
@@ -174,7 +174,7 @@ class FileChecker:
                             path1 = self.prod_site + '/' + prefix + entry
                             path2 = self.dev_site + '/' + prefix + entry
                             cc = CodeChecker(path1, path2)
-                            cc.compare()
+                            cc.compare_files()
 
                             # green true for matching code, red false otherwise
                             if cc.get_result() == "Files are identical!":
@@ -237,7 +237,7 @@ class FileChecker:
                             path1 = self.prod_site + '/' + prefix + entry
                             path2 = self.dev_site + '/' + prefix + entry
                             cc = CodeChecker(path1, path2)
-                            cc.compare()
+                            cc.compare_files()
 
                             # green true for matching code, red false otherwise
                             if cc.get_result() == "Files are identical!":
