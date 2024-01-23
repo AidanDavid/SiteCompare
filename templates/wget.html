@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wget</title>
+    <style>
+        body {
+          background-color: black;
+          color: darkgrey;
+        }
+    </style>
+</head>
+<body>
+    <h1>Wget</h1>
+    <button onclick="goBack()">Return</button>
+    <script>
+    function goBack() {
+      window.history.back();
+    }
+    </script>
+    <br>
+    <br>
+    <form action="/wget" method="post">
+        <label for="url">URL:</label>
+        <input type="text" id="url" name="url" required>
+
+        <label for="path">Destination Path:</label>
+        <input type="text" id="path" name="path" required>
+
+        <button type="submit">Run Wget</button>
+    </form>
+    <br>
+    <pre>{{ result | safe}}</pre>
+</body>
+</html>

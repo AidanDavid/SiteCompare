@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FTP</title>
+    <style>
+        body {
+          background-color: black;
+          color: darkgrey;
+        }
+    </style>
+</head>
+<body>
+    <h1>FTP</h1>
+    <button onclick="goBack()">Return</button>
+    <script>
+    function goBack() {
+      window.history.back();
+    }
+    </script>
+    <br>
+    <br>
+    <form action="/ftp" method="post">
+        <label for="host">Host:</label>
+        <input type="text" id= "host" name="host" required>
+        <br>
+        <label for="user">Username:</label>
+        <input type="text" id= "user" name="user" required>
+        <br>
+        <label for="pass">Password:</label>
+        <input type="text" id= "pass" name="pass" required>
+        <br>
+        <label for="p">FTP Path:</label>
+        <input type="text" id= "p" name="path" required>
+        <br>
+        <label for="dest">Local Destination Path:</label>
+        <input type="text" id= "dest" name="dest" required>
+        <br>
+        <button type="submit">Download FTP Files</button>
+    </form>
+    <br>
+    <pre>{{ result | safe}}</pre>
+</body>
+</html>

@@ -1,7 +1,7 @@
 """
 File: main.py
 Author: Aidan David
-Date: 2024-01-10
+Date: 2024-01-23
 Description: Tests an inputted link.
 """
 import requests

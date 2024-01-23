@@ -1,7 +1,7 @@
 """
 File: main.py
 Author: Aidan David
-Date: 2024-01-10
+Date: 2024-01-23
 Description: Compares directories/folders and files based on organization, size, and modification date.
 Can be further compared using CodeChecker (and LinkChecker)
 """
@@ -24,7 +24,14 @@ class FileChecker:
         self.link_check = link_check
         # prettytable file info
         # do code checks
-        if code_check:
+        if code_check and link_check:
+            self.file_table = PrettyTable([
+                '\033[97m{}\033[0m'.format("Filename"), '\033[97m{}\033[0m'.format("Found"),
+                '\033[97m{}\033[0m'.format("Code Match"),
+                '\033[97m{}\033[0m'.format("Links Failed (PROD.)"), '\033[97m{}\033[0m'.format("Links Failed (DEV.)"),
+                '\033[97m{}\033[0m'.format("Prod. Size (in Bytes)"), '\033[97m{}\033[0m'.format("Dev. Size (in Bytes)"),
+                '\033[97m{}\033[0m'.format("Prod. Modified"), '\033[97m{}\033[0m'.format("Dev. Modified")])
+        elif code_check:
             self.file_table = PrettyTable([
                 '\033[97m{}\033[0m'.format("Filename"), '\033[97m{}\033[0m'.format("Found"),
                 '\033[97m{}\033[0m'.format("Code Match"), '\033[97m{}\033[0m'.format("Prod. Size (in Bytes)"),
@@ -160,17 +167,77 @@ class FileChecker:
                         is_code = True
 
                 # if not code: irrelevant
-                #   if only found in either: not comparable (irrelevant)
-                #       if the file is found in both and identical: True
-                #       else: false
                 if is_code:
-                    if self.code_check:
+                    if self.code_check and self.link_check:
                         # code compare
                         if found == '\033[92m{}\033[0m'.format("BOTH"):
                             path1 = self.prod_site + '/' + prefix + entry
                             path2 = self.dev_site + '/' + prefix + entry
                             cc = CodeChecker(path1, path2)
-                            cc.compare()
+                            cc.compare_files()
+
+                            # green true for matching code, red false otherwise
+                            if cc.get_result() == "Files are identical!":
+                                code_match = '\033[92m{}\033[0m'.format("TRUE")
+                            else:
+                                code_match = '\033[91m{}\033[0m'.format("FALSE")
+                        else:
+                            code_match = "N/A"
+
+                        # link check
+                        # found in both file links
+                        if found == '\033[92m{}\033[0m'.format("BOTH"):
+                            # production file
+                            cc = CodeChecker(self.prod_site + '/' + prefix + entry)
+                            links_failed = cc.check_links()
+
+                            # green 0 for no failures, red number for failures
+                            if links_failed > 0:
+                                links_prod = '\033[91m{}\033[0m'.format(links_failed)
+                            else:
+                                links_prod = '\033[92m{}\033[0m'.format(links_failed)
+
+                            # development file
+                            cc = CodeChecker(self.dev_site + '/' + prefix + entry)
+                            links_failed = cc.check_links()
+
+                            # green 0 for no failures, red number for failures
+                            if links_failed > 0:
+                                links_dev = '\033[91m{}\033[0m'.format(links_failed)
+                            else:
+                                links_dev = '\033[92m{}\033[0m'.format(links_failed)
+
+                        # production file links
+                        elif found == '\033[93m{}\033[0m'.format("PROD."):
+                            cc = CodeChecker(self.prod_site + '/' + prefix + entry)
+                            links_failed = cc.check_links()
+
+                            # green 0 for no failures, red number for failures
+                            if links_failed > 0:
+                                links_prod = '\033[91m{}\033[0m'.format(links_failed)
+                            else:
+                                links_prod = '\033[92m{}\033[0m'.format(links_failed)
+                            links_dev = "N/A"
+
+                        # development file links
+                        else:
+                            cc = CodeChecker(self.dev_site + '/' + prefix + entry)
+                            links_failed = cc.check_links()
+
+                            # green 0 for no failures, red number for failures
+                            if links_failed > 0:
+                                links_dev = '\033[91m{}\033[0m'.format(links_failed)
+                            else:
+                                links_dev = '\033[92m{}\033[0m'.format(links_failed)
+                            links_prod = "N/A"
+
+                    elif self.code_check:
+                        # code compare
+                        if found == '\033[92m{}\033[0m'.format("BOTH"):
+                            path1 = self.prod_site + '/' + prefix + entry
+                            path2 = self.dev_site + '/' + prefix + entry
+                            cc = CodeChecker(path1, path2)
+                            cc.compare_files()
 
                             # green true for matching code, red false otherwise
                             if cc.get_result() == "Files are identical!":
@@ -242,8 +309,19 @@ class FileChecker:
                 else:
                     prefix = self.color_prefix(prefix, prod=prod_stats)
 
+                # add row with code and link check columns
+                if self.code_check and self.link_check:
+                    # add row based on above
+                    self.file_table.add_row([
+                        f"{prefix}{match}{entry}\033[0m",
+                        found, code_match, links_prod, links_dev,
+                        size.format(prod_stats.st_size) if prod_stats else "N/A",
+                        size.format(dev_stats.st_size) if dev_stats else "N/A",
+                        change.format(time.ctime(round(prod_stats.st_mtime))) if prod_stats else "N/A",
+                        change.format(time.ctime(round(dev_stats.st_mtime))) if dev_stats else "N/A"
+                    ])
                 # add row with code check column
-                if self.code_check:
+                elif self.code_check:
                     # add row based on above
                     self.file_table.add_row([
                         f"{prefix}{match}{entry}\033[0m",

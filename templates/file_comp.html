@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Comparison (local)</title>
+    <style>
+        body {
+            background-color: black;
+            color: darkgrey;
+        }
+        pre {
+            background-color: black;
+            color: darkgrey;
+        }
+    </style>
+</head>
+<body>
+    <h1>File Comparison</h1>
+    <button onclick="goBack()">Return</button>
+    <script>
+    function goBack() {
+      window.history.back();
+    }
+    </script>
+    <br>
+    <br>
+    <form action="/file_comp" method="post">
+        <label for="p1">Path 1:</label>
+        <input type="text" id="p1" name="path1" required>
+
+        <label for="p2">Path 2:</label>
+        <input type="text" id="p2" name="path2" required>
+
+        <label for="cc">Code Check:</label>
+        <input type="checkbox" id="cc" name="cc">
+
+        <label for="lc">Link Check:</label>
+        <input type="checkbox" id="lc" name="lc">
+
+        <button type="submit">Run File Comparison</button>
+    </form>
+    <br>
+    <div class="no-wrap" style="background-color: black; color: darkgrey; padding: 10px; margin-top: 20px;">
+        {{ result | safe }}
+    </div>
+</body>
+</html>
