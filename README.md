@@ -63,9 +63,13 @@ FTPFileChecker (class)
 ftp.py
 - included to simulate an FTP server for testing
 
-*
+* * *
 
 General How-to | Hopefully you find the program straight-forward throughout, but some below details maybe unclear:
+
+How to run Site Compare:
+- when everything is downloaded and set-up, run app.py
+  - click the link that is displayed and get started using the web interface!
 
 Expected Inputs:
 - when asked to provide a URL, paste something such as: https://website.com/
