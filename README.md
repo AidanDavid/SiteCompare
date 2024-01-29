@@ -37,6 +37,8 @@ main (class)
 - user can perform code comparison (CodeChecker) on their files
 - user can perform link testing (LinkChecker) on files or urls
 - user can perform FTP downloads (FTPDownloader)
+- user can perform checking on FTP files
+- includes helper functions to make user inputs into usable content
 
 FileChecker (class)
 - searches through directories/folders to find files and compare them
@@ -48,7 +50,7 @@ CodeChecker (class)
 - will highlight additions from the second file in green
 - will highlight deletions from the first file in red
 - allows for finding links, before testing (LinkChecker)
-  - may run into formatting issues when comparing files with a lot of lines, and or very long lines
+- does the above for FTP files by using a string instead of a file
 
 LinkChecker (class)
 - makes a url request and returns the status/code
@@ -56,23 +58,43 @@ LinkChecker (class)
 FTPDownloader (class)
 - downloads files from FTP server, maintaining structure
 
+FTPFileChecker (class)
+- very similar to FileChecker.py, but uses FTP access to check files
+
+ftp.py
+- included to simulate an FTP server for testing
 
 
-General How-to
-- Hopefully you find the program straight-forward throughout, but some below details maybe unclear:
 
+General How-to 
+Hopefully you find the program straight-forward throughout, but some below details maybe unclear:
+
+Expected Inputs:
 - when asked to provide a URL, paste something such as: https://website.com/
-- when asked to provide a path, paste something such as: C:\Users\username\Desktop\website\CodeFiles\codefile.html
+- when asked to provide a path (local), paste something such as: C:\Users\username\Desktop\website\CodeFiles\codefile.html
   - after a file comparison, subsequent code and link check paths only need to be local to the website files, such as: CodeFiles\codefile.html
   - (this would be found in the leftmost column of the file comparing table)
 
+- for FTP functions, use FTP URL format: ftp://hostname:port...
+- username, password and path can be included in the URL or individual in the fields
+- empty username + password will be an anonymous user
+- empty path will assume main/current FTP directory
+
+http/https/Wget download:
 - performing a Wget takes time based on website size (could be minutes to hours per site), if you already have the files downloaded, you can skip this
 
+File Comparisons:
 - when performing file comparisons:
   - the addition of code comparison may add several minutes before the table is generated
   - the addition of link checking may add hours before the table is generated
   - when performing a subsequent code or link check, copy the whole local path found in the leftmost column
-  - on line 156, there is a list of file endings that are looked for as code:
-    - if certain code files are not being recognized, you may have to add the file ending to the list (ex. .cpp)
+  - on line 156 of FileChecker.py, there is a list of file endings that are looked for as code:
+    - if certain code files are not being recognized, you may have to add the file ending to the list (ex. ".cpp")
 
-- at current, FTP functionality has undergone limited testing
+Code Comparisons:
+- may take some time to run depending on the size of the files
+- works best with similar code, large differences may reduce effectiveness
+
+Link Checking:
+- single links should be quick
+- files may take a few minutes if there is a lot to search through/test

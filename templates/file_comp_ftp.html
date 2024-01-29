@@ -3,28 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Comparison (FTP)</title>
+    <title>File Comparison (FTP)</title>
     <style>
         body {
-          background-color: black;
-          color: darkgrey;
+            background-color: black;
+            color: darkgrey;
         }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        th, td {
-            padding: 10px;
-            border: 1px solid darkgrey;
-            font-size: 14px;
-        }
-        .no-wrap {
-            white-space: nowrap;
+        pre {
+            background-color: black;
+            color: darkgrey;
         }
     </style>
 </head>
 <body>
-    <h1>Code Comparison</h1>
+    <h1>File Comparison</h1>
     <button onclick="goBack()">Return</button>
     <script>
     function goBack() {
@@ -33,7 +25,7 @@
     </script>
     <br>
     <br>
-    <form action="/code_comp_ftp" method="post">
+    <form action="/file_comp_ftp" method="post">
         <label for="host1">Host 1 (URL):</label>
         <input type="text" id= "host1" name="host1" required>
         <label for="host2">Host 2 (URL):</label>
@@ -57,9 +49,11 @@
         <label for="p2">FTP Path 2:</label>
         <input type="text" id= "p2" name="path2">
         <br>
-        <button type="submit">Run Code Comparison</button>
+        <button type="submit">Run File Comparison</button>
     </form>
     <br>
-    <pre>{{ result | safe}}</pre>
+    <div class="no-wrap" style="background-color: black; color: darkgrey; padding: 10px; margin-top: 20px;">
+        {{ result | safe }}
+    </div>
 </body>
 </html>

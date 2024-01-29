@@ -1,19 +1,20 @@
 """
 File: main.py
 Author: Aidan David
-Date: 2024-01-23
+Date: 2024-01-29
 Description: Makes use of other program classes to add functionality used by app.py for the web interface.
 """
 import os
 import subprocess
 from ftplib import FTP
 from io import BytesIO
-from io import StringIO
+from urllib.parse import urlparse
 from urllib.parse import urlsplit
 from FileChecker import FileChecker
 from CodeChecker import CodeChecker
 from LinkChecker import LinkChecker
 from FTPDownloader import FTPDownloader
+from FTPFileChecker import FTPFileChecker
 
 
 class MainClass:
@@ -45,12 +46,15 @@ class MainClass:
     # make use of FileChecker class
     def file_comp(self, path1, path2, cc=False, lc=False):
         print("Loading...")
-        # production site path
-        prod_site = path1
-        # development site path
-        dev_site = path2
 
-        fc = FileChecker(prod_site, dev_site, code_check=cc, link_check=lc)
+        fc = FileChecker(path1, path2, code_check=cc, link_check=lc)
+        fc.make_table()
+        return fc.get_file_table()
+
+    def file_comp_ftp(self, ftp1, ftp2, path1, path2, cc=False, lc=False):
+        print("Loading...")
+
+        fc = FTPFileChecker(ftp1, ftp2, path1, path2, code_check=cc, link_check=lc)
         fc.make_table()
         return fc.get_file_table()
 
@@ -96,6 +100,7 @@ class MainClass:
             # if not found, make it
             if not os.path.exists(safe_path):
                 os.makedirs(safe_path)
+
         # user input must be an existing path
         else:
             # tracks success of user inputs
@@ -110,7 +115,6 @@ class MainClass:
                     print("Invalid path")
         # returns path without backslashes and validated
         return safe_path
-
 
     # checks local path validity based on its super
     def get_check_sub_path(self, super_path):
@@ -154,10 +158,26 @@ class MainClass:
 
         return domain_name
 
+    # get FTP info
+    def parse_ftp_url(self, ftp_url):
+        parsed_url = urlparse(ftp_url)
+        if parsed_url.scheme != 'ftp':
+            return 'Invalid FTP URL. Scheme must be "ftp".'
 
-    def test_ftp(self, hostname, username, password, path, is_file=False):
+        hostname = parsed_url.hostname
+        port = int(parsed_url.port) or 21  # default 21
+        username = parsed_url.username
+        password = parsed_url.password
+        path = parsed_url.path.lstrip('/')  # remove leading slash from path
+
+        return hostname, port, username, password, path
+
+    # test an FTP, connect, login and path
+    def test_ftp(self, hostname, port, username, password, path, is_file=False):
+        ftp_instance = FTP()  # Create an instance of the FTP class
         try:
-            with FTP(hostname) as ftp_instance:
+            ftp_instance.connect(hostname, port)
+            try:
                 ftp_instance.login(username, password)
                 if not is_file:
                     try:
@@ -170,21 +190,26 @@ class MainClass:
                     try:
                         dummy_file = BytesIO()
                         # try to retrieve the file content
-                        ftp_instance.retrbinary('RETR ' + path, dummy_file.write)
+                        ftp_instance.retrbinary(f"RETR {path}", dummy_file.write)
                         return ftp_instance
                     except Exception as e:
                         # path failed
                         return 0
 
+            except Exception as e:
+                # access failed
+                return -1
         except Exception as e:
-            # access failed
-            return -1
+            # connection failed
+            return -2
 
+    # download FTP to local
     def download_ftp(self, ftp_instance, path, dest):
         fd = FTPDownloader()
         fd.download(ftp_instance, path, dest)
 
-    def read_file_from_ftp(self, ftp_instance, path):
-        contents = StringIO()
-        ftp_instance.retrlines(f"RETR {path}", contents.write)
-        return contents.getvalue()
+    #
+    def read_file_from_ftp(self, ftp_instance, path, encoding='utf-8'):
+        contents = BytesIO()
+        ftp_instance.retrbinary(f"RETR {path}", contents.write)
+        return contents.getvalue().decode(encoding)
