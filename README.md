@@ -1,8 +1,7 @@
 # SiteCompare
-Site comparing application for D-SOL Media
-Code developed in Python (v.3.10)
+Site comparing application for D-SOL Media | Code developed in Python (v.3.10)
 
-Before running the application, you may need to download Wget to your computer.
+Before running the application, if you wish to web crawl, you may need to download Wget to your computer.
  - Wget is used to crawl websites and download the necessary files. 
  - If you already have the files downloaded locally, there is no need for Wget.
 
@@ -64,10 +63,9 @@ FTPFileChecker (class)
 ftp.py
 - included to simulate an FTP server for testing
 
+*
 
-
-General How-to 
-Hopefully you find the program straight-forward throughout, but some below details maybe unclear:
+General How-to | Hopefully you find the program straight-forward throughout, but some below details maybe unclear:
 
 Expected Inputs:
 - when asked to provide a URL, paste something such as: https://website.com/
