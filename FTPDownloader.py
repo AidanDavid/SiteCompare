@@ -28,13 +28,16 @@ class FTPDownloader:
 
     # recursively mirror directories
     def mirror_dir(self, ftp_instance, local_path, sub_dir):
+        # get the current directory
         add_path = re.split(r'[\\/]', local_path, maxsplit=sub_dir)
         if len(add_path) < 2:
             add_path.append("")
         dir_name = add_path[len(add_path)-1]
 
+        # perform at directory
         os.chdir(os.getcwd()+'/'+dir_name)
 
+        # if directory, mirror, if file download it
         for item in ftp_instance.nlst(local_path):
             path = local_path + '/' + item
             if self.is_dir(ftp_instance, path):
@@ -43,6 +46,7 @@ class FTPDownloader:
                 self.mirror_dir(ftp_instance, path, sub_dir+1)
             else:
                 self.download_file(ftp_instance, item, path)
+        # return to super
         os.chdir("..")
 
     # download files and directories from path in given ftp_instance to local dest

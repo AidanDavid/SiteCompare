@@ -1,7 +1,7 @@
 """
 File: CodeChecker.py
 Author: Aidan David
-Date: 2024-01-23
+Date: 2024-01-29
 Description: Compares code files to help determine where similar code has be altered.
 Makes use of LinkChecker class to find and test links in a file.
 """

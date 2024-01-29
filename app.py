@@ -1,7 +1,7 @@
 """
 File: app.py
 Author: Aidan David
-Date: 2024-01-23
+Date: 2024-01-29
 Description: Web interface for Site Compare. Made to facilitate web development with FileChecker, CodeChecker,
 and LinkChecker classes. Allows users to web crawl, access ftp, file compare, code compare, and check links.
 """
@@ -68,7 +68,7 @@ def ftp():
     host_url = request.form['host']
     username = request.form['user']
     password = request.form['pass']
-    path = request.form['path']
+    path = request.form.get('path', '')
     dest = request.form['dest']
     # ensure dest path is valid or made
     valid_dest = m.check_path(dest, make=True)
@@ -98,7 +98,7 @@ def ftp():
         status.quit()
     # got in but the path does not exist
     elif status == 0:
-        res = "Path does not exist!"
+        res = "Path does not point to a directory!"
     # did not get into FTP server
     else:
         res = "Access to FTP failed!"
@@ -146,11 +146,11 @@ def file_comp_ftp():
     host_url1 = request.form['host1']
     username1 = request.form['user1']
     password1 = request.form['pass1']
-    path1 = request.form['path1']
+    path1 = request.form.get('path1', '')
     host_url2 = request.form['host2']
     username2 = request.form['user2']
     password2 = request.form['pass2']
-    path2 = request.form['path2']
+    path2 = request.form.get('path2', '')
     cc = request.form.get('cc', False)
     lc = request.form.get('lc', False)
 
@@ -170,13 +170,13 @@ def file_comp_ftp():
         path1 = result[4]
 
     # try ftp 1
-    ftp1 = m.test_ftp(result[0], result[1], username1, password1, path1, is_file=True)
+    ftp1 = m.test_ftp(result[0], result[1], username1, password1, path1)
     # it worked
     if type(ftp1) != int:
         res = "FTP 1 successful!"
     # got in but path does not exist
     elif ftp1 == 0:
-        res = "Path 1 does not exist!"
+        res = "Path 1 does not point to a directory!"
     # failed to access FTP server
     else:
         res = "Access to FTP 1 failed!"
@@ -197,13 +197,13 @@ def file_comp_ftp():
         path2 = result[4]
 
     # try ftp2
-    ftp2 = m.test_ftp(result[0], result[1], username2, password2, path2, is_file=True)
+    ftp2 = m.test_ftp(result[0], result[1], username2, password2, path2)
     # it worked
     if type(ftp2) != int:
         res = res + " FTP 2 successful!"
     # got in but path does not exist
     elif ftp2 == 0:
-        res = res + " Path 2 does not exist!"
+        res = res + " Path 2 does not point to a directory!"
     # failed to access FTP server
     else:
         res = res + " Access to FTP 2 failed!"
@@ -255,17 +255,21 @@ def code_comp():
 # ftp code comp page
 @app.route('/code_comp_ftp', methods=['POST'])
 def code_comp_ftp():
+    local = request.form.get('local', '')
     host_url1 = request.form['host1']
     username1 = request.form['user1']
     password1 = request.form['pass1']
-    path1 = request.form['path1']
+    path1 = request.form.get('path1', '')
     host_url2 = request.form['host2']
     username2 = request.form['user2']
     password2 = request.form['pass2']
-    path2 = request.form['path2']
-
+    path2 = request.form.get('path2', '')
     content1 = ''
     content2 = ''
+
+    if len(local) > 0:
+        path1 = path1 + '/' + local
+        path2 = path2 + '/' + local
 
     # parse the host url given
     result = m.parse_ftp_url(host_url1)
@@ -291,7 +295,7 @@ def code_comp_ftp():
         status.quit()
     # got in but path does not exist
     elif status == 0:
-        res = "Path 1 does not exist!"
+        res = "Path 1 does not point to a file!"
     # failed to access FTP server
     else:
         res = "Access to FTP 1 failed!"
@@ -320,7 +324,7 @@ def code_comp_ftp():
         status.quit()
     # got in but path does not exist
     elif status == 0:
-        res = res + " Path 2 does not exist!"
+        res = res + " Path 2 does not point to a file!"
     # failed to access FTP server
     else:
         res = res + " Access to FTP 2 failed!"
@@ -328,7 +332,6 @@ def code_comp_ftp():
     # code comp if both contents were found
     if len(content1) > 1 and len(content2) > 1:
         res = m.code_comp_strings(content1, content2)
-        print(res)
 
     # if successful (prettytable, nots str)
     if type(res) != str:
@@ -378,10 +381,14 @@ def link_check_file():
 # ftp link check page
 @app.route('/link_check_ftp', methods=['POST'])
 def link_check_ftp():
+    local = request.form.get('local', '')
     host_url = request.form['host']
     username = request.form['user']
     password = request.form['pass']
-    path = request.form['path']
+    path = request.form.get('path', '')
+
+    if len(local) > 0:
+        path = path + '/' + local
 
     content = ''
 
@@ -408,7 +415,7 @@ def link_check_ftp():
         status.quit()
     # got in but path does not exist
     elif status == 0:
-        res = "Path does not exist!"
+        res = "Path does not point to a file!"
     # failed to access FTP server
     else:
         res = "Access to FTP failed!"

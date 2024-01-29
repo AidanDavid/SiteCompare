@@ -1,7 +1,7 @@
 """
 File: FTPFileChecker.py
 Author: Aidan David
-Date: 2024-01-23
+Date: 2024-01-29
 Description: Compares directories/folders and files (from FTP) based on organization, size, and modification date.
 Can be further compared using CodeChecker (and LinkChecker)
 """
@@ -82,7 +82,8 @@ class FTPFileChecker:
 
     def file_exists(self, ftp, file_path):
         try:
-            ftp.size(file_path)
+            with BytesIO() as temp_buffer:
+                ftp.retrbinary(f"RETR {file_path}", temp_buffer.write)
             return True
         except Exception as e:
             return False
@@ -185,6 +186,10 @@ class FTPFileChecker:
             # initialize modified times
             formatted_prod = ""
             formatted_dev = ""
+
+            # switch ftp modes to Binary
+            self.prod_site.voidcmd('TYPE I')
+            self.dev_site.voidcmd('TYPE I')
 
             # found in both
             if prod_found and dev_found:

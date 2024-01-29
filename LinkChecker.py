@@ -1,7 +1,7 @@
 """
 File: LinkChecker.py
 Author: Aidan David
-Date: 2024-01-23
+Date: 2024-01-29
 Description: Tests an inputted link.
 """
 import requests

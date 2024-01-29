@@ -1,4 +1,4 @@
-# to host FTP server, having trouble with success
+# to host FTP server, for testing
 from pyftpdlib.authorizers import DummyAuthorizer
 from pyftpdlib.handlers import FTPHandler
 from pyftpdlib.servers import FTPServer
@@ -9,8 +9,8 @@ server = None
 
 def start_server(*, port=4444):
     authorizer = DummyAuthorizer()
-    authorizer.add_user("user", "abc123", "C:/Users/aidan/OneDrive/Desktop/Wget/websites/bravenlyglobal.d-solmedia.com", perm="elradfmwMT")
-    authorizer.add_anonymous("C:/Users/aidan/OneDrive/Desktop/Wget/websites/bravenlyglobal.com")
+    authorizer.add_user("user", "abc123", "C:/yourlocalpathhere", perm="elradfmwMT")
+    authorizer.add_anonymous("C:/anotherlocalpathhere")
 
     handler = FTPHandler
     handler.authorizer = authorizer

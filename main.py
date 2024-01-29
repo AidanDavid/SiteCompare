@@ -1,7 +1,7 @@
 """
 File: main.py
 Author: Aidan David
-Date: 2024-01-23
+Date: 2024-01-29
 Description: Makes use of other program classes to add functionality used by app.py for the web interface.
 """
 import os
@@ -158,6 +158,7 @@ class MainClass:
 
         return domain_name
 
+    # get FTP info
     def parse_ftp_url(self, ftp_url):
         parsed_url = urlparse(ftp_url)
         if parsed_url.scheme != 'ftp':
@@ -171,6 +172,7 @@ class MainClass:
 
         return hostname, port, username, password, path
 
+    # test an FTP, connect, login and path
     def test_ftp(self, hostname, port, username, password, path, is_file=False):
         ftp_instance = FTP()  # Create an instance of the FTP class
         try:
@@ -201,38 +203,13 @@ class MainClass:
             # connection failed
             return -2
 
+    # download FTP to local
     def download_ftp(self, ftp_instance, path, dest):
         fd = FTPDownloader()
         fd.download(ftp_instance, path, dest)
 
+    #
     def read_file_from_ftp(self, ftp_instance, path, encoding='utf-8'):
         contents = BytesIO()
         ftp_instance.retrbinary(f"RETR {path}", contents.write)
         return contents.getvalue().decode(encoding)
-
-    def main(self):
-        try:
-            ftp_instance1 = FTP()
-            ftp_instance1.connect("192.168.1.125", 4444)
-            ftp_instance1.login("user", "abc123")
-            try:
-                ftp_instance2 = FTP()
-                ftp_instance2.connect("192.168.1.125", 4444)
-                ftp_instance2.login()
-                try:
-                    print(self.file_comp_ftp(ftp_instance1, ftp_instance2, "", ""))
-                    ftp_instance1.quit()
-                    ftp_instance2.quit()
-                except Exception as e:
-                    print(e)
-                    ftp_instance1.quit()
-                    ftp_instance2.quit()
-            except:
-                print("failed 2")
-                ftp_instance1.quit()
-        except:
-            print("failed 1")
-
-if __name__ == "__main__":
-    main_instance = MainClass()
-    main_instance.main()

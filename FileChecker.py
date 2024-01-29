@@ -1,7 +1,7 @@
 """
 File: FileChecker.py
 Author: Aidan David
-Date: 2024-01-23
+Date: 2024-01-29
 Description: Compares directories/folders and files based on organization, size, and modification date.
 Can be further compared using CodeChecker (and LinkChecker)
 """
