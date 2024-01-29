@@ -1,5 +1,6 @@
 # downloads FTP files to local
 import os
+import re
 
 
 class FTPDownloader:
@@ -7,12 +8,12 @@ class FTPDownloader:
         pass
 
     # check if item on ftp is a directory
-    def is_dir(self, ftp_instance, item_name):
+    def is_dir(self, ftp_instance, path):
         # remember current directory
         original_cwd = ftp_instance.pwd()
         # change directory to item_name
         try:
-            ftp_instance.cwd(item_name)
+            ftp_instance.cwd(path)
             # go back
             ftp_instance.cwd(original_cwd)
             return True
@@ -20,36 +21,31 @@ class FTPDownloader:
         except Exception as e:
             return False
 
-    # make directory if doesnt exist
-    def make_dir(self, fpath):
-        dir_item_name = os.path.dirname(fpath)
-        while not os.path.exists(dir_item_name):
-            try:
-                os.mkdir(dir_item_name)
-            except Exception as e:
-                self.make_dir(dir_item_name)
-
     # download file from ftp
-    def download_file(self, ftp_instance, item_name, dest):
-        # make dir if not already made
-        self.make_dir(dest)
-        # if file doesnt exist
-        if not os.path.exists(dest):
-            with open(dest, 'wb') as f:
-                ftp_instance.retrbinary("RETR {0}".format(item_name), f.write)
-        # file exists but should stay the same
-        else:
-            pass
+    def download_file(self, ftp_instance, item_name, path):
+        with open(os.path.join(os.getcwd(), item_name), 'wb') as f:
+            ftp_instance.retrbinary("RETR {0}".format(path), f.write)
 
     # recursively mirror directories
-    def mirror_dir(self, ftp_instance, item_name):
-        for item in ftp_instance.nlst(item_name):
-            if self.is_dir(ftp_instance, item):
-                self.mirror_dir(ftp_instance, item)
+    def mirror_dir(self, ftp_instance, local_path, sub_dir):
+        add_path = re.split(r'[\\/]', local_path, maxsplit=sub_dir)
+        if len(add_path) < 2:
+            add_path.append("")
+        dir_name = add_path[len(add_path)-1]
+
+        os.chdir(os.getcwd()+'/'+dir_name)
+
+        for item in ftp_instance.nlst(local_path):
+            path = local_path + '/' + item
+            if self.is_dir(ftp_instance, path):
+                if not os.path.exists(item):
+                    os.makedirs(item)
+                self.mirror_dir(ftp_instance, path, sub_dir+1)
             else:
-                self.download_file(ftp_instance, item, item)
+                self.download_file(ftp_instance, item, path)
+        os.chdir("..")
 
     # download files and directories from path in given ftp_instance to local dest
     def download(self, ftp_instance, path, dest):
         os.chdir(dest)
-        self.mirror_dir(ftp_instance, path)
+        self.mirror_dir(ftp_instance, path, 1)

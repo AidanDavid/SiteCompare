@@ -1,5 +1,5 @@
 """
-File: main.py
+File: CodeChecker.py
 Author: Aidan David
 Date: 2024-01-23
 Description: Compares code files to help determine where similar code has be altered.
@@ -60,7 +60,7 @@ class CodeChecker:
                 self.identical = False
                 # color line number only to avoid colour bleed (green)
                 green_num = '\033[92m{}\033[0m'.format(line_num2)
-                #                                                                              [1:] skips '+'
+                #                                                                                    [1:] skips '+'
                 content2 = content2 + '\033[92m{}\033[0m'.format(f'{green_num}: {self.replace_tabs(line_list[0][1:])}')
                 # lines over max_width
                 for item in line_list[1:]:
@@ -79,7 +79,7 @@ class CodeChecker:
                 self.identical = False
                 # color line number only to avoid colour bleed (red)
                 red_num = '\033[91m{}\033[0m'.format(line_num1)
-                #                                                                              [1:] skips '-'
+                #                                                                                  [1:] skips '-'
                 content1 = content1 + '\033[91m{}\033[0m'.format(f'{red_num}: {self.replace_tabs(line_list[0][1:])}')
                 for item in line_list[1:]:
                     content1 = content1 + '\n' + item
@@ -119,8 +119,19 @@ class CodeChecker:
 
     # strings to be compared line by line and put in table
     def compare_strings(self):
+        # get lines from string
+        str1_lines = self.str1.splitlines()
+        str2_lines = self.str2.splitlines()
+
+        # make them into proper line (newline)
+        for i in range(0, len(str1_lines)-1):
+            str1_lines[i] = str1_lines[i] + '\n'
+
+        for j in range(0, len(str2_lines)-1):
+            str2_lines[j] = str2_lines[j] + '\n'
+
         # get differences
-        diffs = list(difflib.ndiff(self.str1, self.str2))
+        diffs = list(difflib.ndiff(str1_lines, str2_lines))
 
         # column_width used to ensure code lines up correctly (feel free to change)
         column_width = 100
@@ -140,7 +151,6 @@ class CodeChecker:
 
     # takes local path, makes strings to be compared line by line and put in table
     def compare_files(self):
-
         # make sure path points to a file
         if not os.path.isfile(self.path1):
             self.result = "First path does not point to a file!"
@@ -215,10 +225,13 @@ class CodeChecker:
         # use to test any links found in html file
         lc = LinkChecker()
 
+        # get string in lines
+        lines = self.str1.splitlines()
+
         # to see when and if links found
         links_list = []
         line_num = 1
-        for line in self.str1:
+        for line in lines:
             # regex to find URLs
             regex = r'http[s]?://[^\s"<>\')]+'
             matches = re.findall(regex, line)
@@ -237,7 +250,7 @@ class CodeChecker:
         return links_list
 
     # returns number for failed links found in a file
-    def check_links(self):
+    def check_links_file(self):
         # check if file
         if not os.path.isfile(self.path1):
             return "Path does not point to a file!"
@@ -265,3 +278,28 @@ class CodeChecker:
                 line_num += 1
 
             return links_failed
+
+    # returns number for failed links found in a string
+    def check_links_string(self):
+        # use to test any links found in html file
+        lc = LinkChecker()
+
+        # get string in lines
+        lines = self.str1.splitlines()
+
+        links_failed = 0  # 0 == all good, else 1+ failures
+        line_num = 1
+        for line in lines:
+            # regex to find URLs
+            regex = r'http[s]?://[^\s"<>\')]+'
+            matches = re.findall(regex, line)
+
+            # use link check on any links
+            if matches:
+                for result in matches:
+                    lc.link_check(result)
+                    if lc.get_code() >= 400:
+                        links_failed += 1
+            line_num += 1
+
+        return links_failed

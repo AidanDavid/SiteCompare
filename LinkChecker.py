@@ -1,5 +1,5 @@
 """
-File: main.py
+File: LinkChecker.py
 Author: Aidan David
 Date: 2024-01-23
 Description: Tests an inputted link.

@@ -9,8 +9,8 @@ server = None
 
 def start_server(*, port=4444):
     authorizer = DummyAuthorizer()
-    authorizer.add_user("user", "abc123", "C:/Users/aidan/OneDrive/Desktop/CodeFiles/set1", perm="elradfmwMT")
-    authorizer.add_anonymous("C:/Users/aidan/OneDrive/Desktop/CodeFiles/set1")
+    authorizer.add_user("user", "abc123", "C:/Users/aidan/OneDrive/Desktop/Wget/websites/bravenlyglobal.d-solmedia.com", perm="elradfmwMT")
+    authorizer.add_anonymous("C:/Users/aidan/OneDrive/Desktop/Wget/websites/bravenlyglobal.com")
 
     handler = FTPHandler
     handler.authorizer = authorizer
@@ -19,6 +19,7 @@ def start_server(*, port=4444):
     address = gethostbyname(gethostname())
 
     server = FTPServer((address, port), handler)
+    print(gethostbyname(gethostname()))
     server.serve_forever()
 
 
