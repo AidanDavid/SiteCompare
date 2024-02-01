@@ -16,8 +16,11 @@ Python libraries you may have to install include:
 - flask
 - requests
 - prettytable
-You can use requirements.txt to do this. Paste the following in your console:
+
+You can use requirements.txt to do this. Run the following in your console:
+\\\sh
 pip install -r requirements.txt
+\\\
 
 This program was developed to help web developers compare websites in two distinct states.
 It allows users to download websites, download FTP files, compare directories, files and test links.
