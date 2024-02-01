@@ -80,8 +80,8 @@ Expected Inputs:
   - after a file comparison, subsequent code and link check paths only need to be local to the website files, such as: CodeFiles\codefile.html
   - (this would be found in the leftmost column of the file comparing table)
 
-- for FTP functions, use FTP URL format: ftp://hostname:port...
-- username, password and path can be included in the URL or individual in the fields
+- for FTP functions, use FTP (URL) format: 'ftp://hostname:port...' or 'hostname:port...'
+- username, password and path can be included in the URL or individually in the named fields
 - empty username + password will be an anonymous user
 - empty path will assume main/current FTP directory
 

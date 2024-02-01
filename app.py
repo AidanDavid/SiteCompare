@@ -73,6 +73,10 @@ def ftp():
     # ensure dest path is valid or made
     valid_dest = m.check_path(dest, make=True)
 
+    # add ftp:// to the front of host_url if not already there
+    if host_url[:6] != "ftp://":
+        host_url = "ftp://" + host_url
+
     # parse the host url given
     result = m.parse_ftp_url(host_url)
 
@@ -153,6 +157,13 @@ def file_comp_ftp():
     path2 = request.form.get('path2', '')
     cc = request.form.get('cc', False)
     lc = request.form.get('lc', False)
+
+    # add ftp:// to the front of host_url if not already there
+    if host_url1[:6] != "ftp://":
+        host_url1 = "ftp://" + host_url1
+
+    if host_url2[:6] != "ftp://":
+        host_url2 = "ftp://" + host_url2
 
     # parse the host url given
     result = m.parse_ftp_url(host_url1)
@@ -266,6 +277,13 @@ def code_comp_ftp():
     path2 = request.form.get('path2', '')
     content1 = ''
     content2 = ''
+
+    # add ftp:// to the front of host_url if not already there
+    if host_url1[:6] != "ftp://":
+        host_url1 = "ftp://" + host_url1
+
+    if host_url2[:6] != "ftp://":
+        host_url2 = "ftp://" + host_url2
 
     if len(local) > 0:
         path1 = path1 + '/' + local
@@ -387,6 +405,10 @@ def link_check_ftp():
     password = request.form['pass']
     path = request.form.get('path', '')
 
+    # add ftp:// to the front of host_url if not already there
+    if host_url[:6] != "ftp://":
+        host_url = "ftp://" + host_url
+
     if len(local) > 0:
         path = path + '/' + local
 
@@ -425,13 +447,13 @@ def link_check_ftp():
         out_list = m.links_check_string(content)
         # failure
         if type(out_list) == str:
-            return render_template('link_check_file.html', result=out_list)
+            return render_template('link_check_ftp.html', result=out_list)
         res = ""
         for item in out_list:
             res = res + item + "\n"
         # remove ANSI add HTML color
         res = apply_html_colors(res)
-        return render_template('link_check_file.html', result=res)
+        return render_template('link_check_ftp.html', result=res)
 
     return render_template('link_check_ftp.html', result=res)
 
