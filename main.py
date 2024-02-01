@@ -181,7 +181,12 @@ class MainClass:
                 ftp_instance.login(username, password)
                 if not is_file:
                     try:
+                        # remember current directory
+                        original_cwd = ftp_instance.pwd()
+                        # change directory to path
                         ftp_instance.cwd(path)
+                        # change back
+                        ftp_instance.cwd(original_cwd)
                         return ftp_instance
                     except Exception as e:
                         # path failed
